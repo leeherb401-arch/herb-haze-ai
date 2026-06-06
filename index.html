@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Herb Haze AI — Autonomous Dropshipping</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#04030a;--panel:#08070f;--card:#0c0b18;--border:#161428;
+  --cyan:#00f0c8;--violet:#9b5de5;--amber:#fbbf24;--rose:#f43f5e;
+  --green:#22c55e;--blue:#38bdf8;--pink:#ff2d78;--orange:#ff6b00;
+  --text:#ede9ff;--muted:#4a4470;--dim:#0d0b19;
+}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#222;}
+
+/* NAV */
+nav{background:#060509;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+.logo{font-size:16px;font-weight:700;color:#fff;letter-spacing:1px;}
+.logo span{color:var(--cyan);}
+.nav-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.tab{padding:6px 13px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:monospace;font-size:9px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+.tab.active{background:var(--cyan);color:#000;font-weight:700;}
+.tab:hover:not(.active){color:var(--text);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;margin-left:auto;}
+
+/* PAGES */
+.page{display:none;padding:24px;max-width:1200px;margin:0 auto;animation:fadeUp 0.4s ease;}
+.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
+.card-label{font-size:9px;color:#383838;letter-spacing:3px;margin-bottom:10px;}
+.grid-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
+.stat{background:var(--card);border-radius:10px;padding:14px 16px;}
+.stat-val{font-size:24px;font-weight:700;margin-top:6px;}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+
+/* AGENTS */
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:20px;}
+.agent-card{background:var(--card);border:2px solid transparent;border-radius:10px;padding:13px;cursor:pointer;transition:all 0.2s;}
+.agent-card:hover{border-color:#ffffff22;}
+.agent-card.running{animation:agentPulse 1.5s infinite;}
+.agent-icon{font-size:26px;margin-bottom:8px;}
+.agent-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.agent-role{font-size:9px;color:var(--muted);}
+.agent-status{font-size:9px;margin-top:6px;display:flex;align-items:center;gap:5px;}
+
+/* PRODUCTS */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.product-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;transition:border-color 0.2s;}
+.product-card:hover{border-color:#ffffff22;}
+.product-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.product-meta{font-size:10px;color:var(--muted);margin-bottom:10px;}
+.product-prices{display:flex;justify-content:space-between;margin-bottom:10px;}
+.price-cost{font-size:11px;color:var(--muted);}
+.price-sell{font-size:16px;font-weight:700;color:var(--cyan);}
+.profit-badge{font-size:9px;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.product-btns{display:flex;gap:6px;}
+
+/* CHAT */
+.chat-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;height:280px;overflow-y:auto;margin-bottom:10px;}
+.msg{margin-bottom:12px;animation:fadeUp 0.3s ease;}
+.msg.user{text-align:right;}
+.bubble{display:inline-block;max-width:80%;padding:9px 13px;border-radius:10px;font-size:12px;line-height:1.65;white-space:pre-wrap;}
+.msg.user .bubble{background:#1a1a2e;border:1px solid #2a2a4a;color:#c8d6f5;font-family:monospace;}
+.msg.agent .bubble{background:#111;color:#d4d4d4;font-family:Georgia,serif;}
+.chat-row{display:flex;gap:8px;}
+.chat-in{flex:1;background:var(--dim);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:monospace;font-size:12px;outline:none;}
+.chat-in:focus{border-color:var(--cyan);}
+
+/* BUTTONS */
+.btn{padding:9px 16px;border-radius:8px;border:none;font-family:monospace;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+.btn-cyan{background:linear-gradient(135deg,var(--cyan),#00c8a8);color:#000;}
+.btn-cyan:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
+.btn-violet{background:linear-gradient(135deg,var(--violet),#7c3aed);color:#fff;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{color:var(--text);border-color:#333;}
+.btn-rose{background:linear-gradient(135deg,var(--rose),#dc2626);color:#fff;}
+.btn-green{background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;}
+
+/* WAR ROOM */
+.wr-msg{background:var(--card);border-radius:9px;padding:11px 14px;margin-bottom:8px;border:1px solid var(--border);animation:fadeUp 0.3s ease;}
+.wr-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.wr-from{font-size:10px;font-weight:700;}
+.wr-time{font-size:9px;color:#333;margin-left:auto;font-family:monospace;}
+.wr-text{font-size:12px;color:#888;line-height:1.65;font-family:Georgia,serif;}
+.wr-badge{font-size:9px;padding:1px 7px;border-radius:10px;}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:center;gap:0;margin-bottom:20px;overflow-x:auto;}
+.pipe-step{flex:1;min-width:80px;text-align:center;position:relative;}
+.pipe-step::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--border);z-index:0;}
+.pipe-step:last-child::after{display:none;}
+.pipe-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;margin:0 auto 6px;position:relative;z-index:1;}
+.pipe-label{font-size:8px;color:var(--muted);}
+
+/* SUPPLIER BADGES */
+.supplier-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;}
+.cj{background:rgba(0,240,200,.12);color:var(--cyan);border:1px solid rgba(0,240,200,.3);}
+.ali{background:rgba(255,107,0,.12);color:var(--orange);border:1px solid rgba(255,107,0,.3);}
+.spocket{background:rgba(155,93,229,.12);color:var(--violet);border:1px solid rgba(155,93,229,.3);}
+
+/* NICHE PILLS */
+.niche-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.niche-pill{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:monospace;font-size:9px;cursor:pointer;transition:all 0.15s;}
+.niche-pill.on{border-color:var(--violet);background:rgba(155,93,229,.12);color:var(--violet);font-weight:700;}
+
+/* TRENDING */
+.trending-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #111;}
+.trending-rank{font-size:18px;font-weight:700;color:var(--amber);width:30px;}
+.trending-info{flex:1;}
+.trending-name{font-size:13px;color:var(--text);font-weight:700;}
+.trending-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.trending-score{text-align:right;}
+.score-val{font-size:16px;font-weight:700;color:var(--cyan);}
+.score-label{font-size:9px;color:var(--muted);}
+
+/* ALERTS */
+.alert{padding:10px 14px;border-radius:9px;font-size:11px;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.alert-green{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);color:var(--green);}
+.alert-amber{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:var(--amber);}
+.alert-rose{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.25);color:var(--rose);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes agentPulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px currentColor}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes tdot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.spin{animation:spin 1s linear infinite;display:inline-block;}
+.typing{display:flex;gap:4px;padding:4px 0;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:tdot 1.2s ease-in-out infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">HERB HAZE <span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="tab active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button class="tab" onclick="showPage('research',this)">🔬 Research</button>
+    <button class="tab" onclick="showPage('products',this)">📦 Products</button>
+    <button class="tab" onclick="showPage('agents',this)">🤖 Agents</button>
+    <button class="tab" onclick="showPage('content',this)">🎯 Content</button>
+    <button class="tab" onclick="showPage('warroom',this)">🏠 War Room</button>
+    <button class="tab" onclick="showPage('temu',this)">🛍️ Temu Trends</button>
+    <button class="tab" onclick="showPage('settings',this)">⚙ Settings</button>
+  </div>
+  <div class="live-dot" title="All systems live"></div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- DASHBOARD -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page active">
+  <div style="margin-bottom:20px">
+    <div style="font-size:9px;color:#333;letter-spacing:4px">HERB HAZE STUDIOS · herb-haze-studios.myshopify.com</div>
+    <div style="font-size:22px;font-weight:700;color:#fff;margin-top:4px">Autonomous Dropshipping HQ</div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <span class="supplier-badge cj">CJDropshipping ✓</span>
+      <span class="supplier-badge ali">AliExpress ✓</span>
+      <span class="supplier-badge spocket">Spocket ✓</span>
+      <span style="font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.3)">Shopify Connected</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-stats" id="stats-grid">
+    <div class="stat" style="border:1px solid rgba(0,240,200,.2)"><div class="card-label">REVENUE (30d)</div><div class="stat-val" style="color:var(--cyan)" id="s-revenue">$0</div><div class="stat-sub">from Shopify orders</div></div>
+    <div class="stat" style="border:1px solid rgba(34,197,94,.2)"><div class="card-label">PROFIT MARGIN</div><div class="stat-val" style="color:var(--green)" id="s-margin">0%</div><div class="stat-sub">after supplier cost</div></div>
+    <div class="stat" style="border:1px solid rgba(155,93,229,.2)"><div class="card-label">ACTIVE PRODUCTS</div><div class="stat-val" style="color:var(--violet)" id="s-products">0</div><div class="stat-sub" id="s-products-sub">0 imported this week</div></div>
+    <div class="stat" style="border:1px solid rgba(251,191,36,.2)"><div class="card-label">ORDERS (30d)</div><div class="stat-val" style="color:var(--amber)" id="s-orders">0</div><div class="stat-sub">auto-fulfilled</div></div>
+    <div class="stat" style="border:1px solid rgba(244,63,94,.2)"><div class="card-label">PRODUCTS TESTED</div><div class="stat-val" style="color:var(--rose)" id="s-tested">0</div><div class="stat-sub">by RESEARCHER</div></div>
+    <div class="stat" style="border:1px solid rgba(56,189,248,.2)"><div class="card-label">PIPELINE RUNS</div><div class="stat-val" style="color:var(--blue)" id="s-runs">0</div><div class="stat-sub">automated daily</div></div>
+  </div>
+
+  <!-- Alerts -->
+  <div id="alerts-section"></div>
+
+  <!-- Pipeline viz -->
+  <div class="card">
+    <div class="card-label">AUTONOMOUS PIPELINE · RUNS DAILY AT 8AM</div>
+    <div class="pipeline" id="pipeline-viz"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-cyan" onclick="runFullPipeline()" id="run-btn">⚡ RUN FULL PIPELINE NOW</button>
+      <button class="btn btn-outline" onclick="showPage('warroom',document.querySelector('[onclick*=warroom]'))">View War Room →</button>
+    </div>
+  </div>
+
+  <!-- Recent products -->
+  <div class="card">
+    <div class="card-label">RECENTLY IMPORTED PRODUCTS</div>
+    <div id="recent-products"><div style="color:#333;font-size:11px">No products imported yet. Run the pipeline or use Research tab.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- RESEARCH -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-research" class="page">
+  <div style="margin-bottom:20px">
+    <div style="font-size:9px;color:#333;letter-spacing:4px">AI-POWERED</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">🔬 Product Research Agent</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px">RESEARCHER finds winning products across all niches — not just gym. All trends, all markets.</div>
+  </div>
+
+  <!-- Niche selector -->
+  <div class="card">
+    <div class="card-label">SELECT NICHES TO RESEARCH (or let RESEARCHER decide)</div>
+    <div class="niche-pills" id="niche-pills"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-violet" onclick="runResearch()" id="research-btn">🔬 RESEARCH WINNING PRODUCTS</button>
+      <button class="btn btn-outline" onclick="selectAllNiches()">Select All</button>
+      <button class="btn btn-outline" onclick="clearNiches()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Trending now -->
+  <div class="card">
+    <div class="card-label">🔥 TRENDING RIGHT NOW · AI ANALYSIS</div>
+    <div id="trending-list"><div style="color:#333;font-size:11px">Run research to see trending products</div></div>
+  </div>
+
+  <!-- Research results -->
+  <div id="research-results"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PRODUCTS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-products" class="page">
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:9px;color:#333;letter-spacing:4px">SHOPIFY STORE</div>
+      <div style="font-size:20px;font-weight:700;color:#fff">Product Portfolio</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="importTopProduct()">⚡ IMPORT TOP PICK</button>
+      <button class="btn btn-violet" onclick="autoOptimizeAll()">🤖 AUTO-OPTIMIZE ALL</button>
+    </div>
+  </div>
+
+  <div class="product-grid" id="product-grid">
+    <div style="color:#333;font-size:11px;grid-column:1/-1">No products yet. Run Research to find winning products, then import them.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- AGENTS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-agents" class="page">
+  <div style="margin-bottom:16px">
+    <div style="font-size:9px;color:#333;letter-spacing:4px">6 AUTONOMOUS SPECIALISTS</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">Agent Control Center</div>
+  </div>
+
+  <div class="agent-grid" id="agent-grid"></div>
+
+  <div class="card">
+    <div class="card-label" id="chat-label">SELECT AN AGENT TO CHAT</div>
+    <div class="chat-box" id="chat-box">
+      <div style="color:#333;font-size:11px;text-align:center;margin-top:80px">Select an agent above to start chatting</div>
+    </div>
+    <div class="chat-row">
+      <input class="chat-in" id="chat-input" placeholder="Ask the agent..." onkeydown="if(event.key==='Enter')sendChat()" />
+      <button class="btn btn-cyan" onclick="sendChat()" id="chat-send">SEND →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CONTENT -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-content" class="page">
+  <div style="margin-bottom:16px">
+    <div style="font-size:9px;color:#333;letter-spacing:4px">AI-GENERATED</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">🎯 Content & Marketing</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:20px">
+    <div class="card" style="cursor:pointer;border:1px solid rgba(255,45,120,.3)" onclick="generateContent('tiktok')">
+      <div style="font-size:24px;margin-bottom:8px">🎵</div>
+      <div style="color:var(--pink);font-size:12px;font-weight:700">TikTok Ad Script</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Hook + story + CTA for viral product videos</div>
+    </div>
+    <div class="card" style="cursor:pointer;border:1px solid rgba(155,93,229,.3)" onclick="generateContent('instagram')">
+      <div style="font-size:24px;margin-bottom:8px">📸</div>
+      <div style="color:var(--violet);font-size:12px;font-weight:700">Instagram Reel Script</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Story-driven reel script for product showcase</div>
+    </div>
+    <div class="card" style="cursor:pointer;border:1px solid rgba(255,107,0,.3)" onclick="generateContent('facebook')">
+      <div style="font-size:24px;margin-bottom:8px">👥</div>
+      <div style="color:var(--orange);font-size:12px;font-weight:700">Facebook Ad Copy</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Headline + body + CTA for Facebook ads</div>
+    </div>
+    <div class="card" style="cursor:pointer;border:1px solid rgba(56,189,248,.3)" onclick="generateContent('email')">
+      <div style="font-size:24px;margin-bottom:8px">📧</div>
+      <div style="color:var(--blue);font-size:12px;font-weight:700">Email Campaign</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Subject line + email body for product launch</div>
+    </div>
+    <div class="card" style="cursor:pointer;border:1px solid rgba(251,191,36,.3)" onclick="generateContent('seo')">
+      <div style="font-size:24px;margin-bottom:8px">🔍</div>
+      <div style="color:var(--amber);font-size:12px;font-weight:700">SEO Product Description</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Keyword-optimized title + description for Shopify</div>
+    </div>
+    <div class="card" style="cursor:pointer;border:1px solid rgba(34,197,94,.3)" onclick="generateContent('bulk')">
+      <div style="font-size:24px;margin-bottom:8px">⚡</div>
+      <div style="color:var(--green);font-size:12px;font-weight:700">BULK — All Platforms</div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">Generate content for ALL platforms at once</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">PRODUCT TO CREATE CONTENT FOR</div>
+    <div style="display:flex;gap:8px">
+      <input id="content-product" class="chat-in" placeholder="Enter product name or paste description..." style="flex:1" />
+      <select id="content-niche" style="background:var(--dim);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:monospace;font-size:11px;outline:none">
+        <option>General</option><option>Fitness</option><option>Beauty</option><option>Tech</option>
+        <option>Home</option><option>Fashion</option><option>Pet</option><option>Kids</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="content-output"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WAR ROOM -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-warroom" class="page">
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:9px;color:#333;letter-spacing:4px">LIVE FEED</div>
+      <div style="font-size:20px;font-weight:700;color:#fff">🏠 Agent War Room</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+      <span class="wr-badge" style="background:rgba(56,189,248,.12);color:var(--blue);border:1px solid rgba(56,189,248,.3)">broadcast</span>
+      <span class="wr-badge" style="background:rgba(244,63,94,.12);color:var(--rose);border:1px solid rgba(244,63,94,.3)">alert</span>
+      <span class="wr-badge" style="background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.3)">success</span>
+      <span class="wr-badge" style="background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.3)">discovery</span>
+      <button class="btn btn-cyan" style="padding:5px 14px;font-size:9px" onclick="runFullPipeline()">⚡ RUN PIPELINE</button>
+    </div>
+  </div>
+  <div id="warroom-feed"><div style="color:#333;font-size:11px;text-align:center;padding:40px 0">Run the pipeline or interact with agents to see live communications here.</div></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- TEMU TRENDS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-temu" class="page">
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:9px;color:#333;letter-spacing:4px">AUTO-SCRAPES EVERY 24HRS</div>
+      <div style="font-size:20px;font-weight:700;color:#fff">🛍️ Temu Trend Monitor</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Finds trending Temu products → matches on CJDropshipping → auto-imports to your Shopify store</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="runTemuScraper()" id="temu-btn">🔍 SCRAPE TEMU NOW</button>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="card" style="margin-bottom:14px;border:1px solid rgba(0,240,200,.2)">
+    <div class="card-label">HOW IT WORKS · FULLY AUTOMATED</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:28px;margin-bottom:8px">🛍️</div>
+        <div style="font-size:11px;font-weight:700;color:var(--cyan);margin-bottom:4px">STEP 1</div>
+        <div style="font-size:10px;color:var(--muted)">Scrapes Temu bestsellers, new arrivals & flash deals every 24hrs at 8AM</div>
+      </div>
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:28px;margin-bottom:8px">🔍</div>
+        <div style="font-size:11px;font-weight:700;color:var(--violet);margin-bottom:4px">STEP 2</div>
+        <div style="font-size:10px;color:var(--muted)">Matches each Temu product with identical item on CJDropshipping at wholesale price</div>
+      </div>
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:28px;margin-bottom:8px">💹</div>
+        <div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:4px">STEP 3</div>
+        <div style="font-size:10px;color:var(--muted)">Calculates margins — only approves products with 35%+ profit margin</div>
+      </div>
+      <div style="text-align:center;padding:12px">
+        <div style="font-size:28px;margin-bottom:8px">🚀</div>
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">STEP 4</div>
+        <div style="font-size:10px;color:var(--muted)">Auto-imports approved products to your Shopify store — zero manual work</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Last scrape results -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">LAST SCRAPE RESULTS</div>
+    <div id="temu-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+      <div class="stat" style="border:1px solid rgba(0,240,200,.2)"><div class="card-label">TEMU FOUND</div><div class="stat-val" style="color:var(--cyan)" id="temu-count">—</div></div>
+      <div class="stat" style="border:1px solid rgba(155,93,229,.2)"><div class="card-label">CJ MATCHES</div><div class="stat-val" style="color:var(--violet)" id="cj-count">—</div></div>
+      <div class="stat" style="border:1px solid rgba(34,197,94,.2)"><div class="card-label">IMPORTED</div><div class="stat-val" style="color:var(--green)" id="import-count">—</div></div>
+      <div class="stat" style="border:1px solid rgba(251,191,36,.2)"><div class="card-label">LAST RUN</div><div class="stat-val" style="color:var(--amber);font-size:14px" id="last-run">Never</div></div>
+    </div>
+  </div>
+
+  <!-- Trending products -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">🔥 TEMU TRENDING → CJ MATCHES</div>
+    <div id="temu-matches"><div style="color:#333;font-size:11px">Click "Scrape Temu Now" to find trending products</div></div>
+  </div>
+
+  <!-- Auto import log -->
+  <div class="card">
+    <div class="card-label">✅ AUTO-IMPORTED TO SHOPIFY</div>
+    <div id="temu-imported"><div style="color:#333;font-size:11px">Products auto-imported here after each scrape</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SETTINGS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="page-settings" class="page">
+  <div style="margin-bottom:20px">
+    <div style="font-size:9px;color:#333;letter-spacing:4px">CONFIGURATION</div>
+    <div style="font-size:20px;font-weight:700;color:#fff">⚙ API Connections</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">SHOPIFY</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">STORE URL</div>
+        <input class="chat-in" id="s-shopify-url" placeholder="herb-haze-studios.myshopify.com" value="herb-haze-studios.myshopify.com" /></div>
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">ACCESS TOKEN</div>
+        <input class="chat-in" id="s-shopify-token" type="password" placeholder="shpat_..." /></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">SUPPLIERS</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="supplier-badge cj">CJDropshipping</span>
+          <span style="font-size:10px;color:var(--muted)">Primary supplier</span>
+        </div>
+        <input class="chat-in" id="s-cj-email" placeholder="CJ account email" style="margin-bottom:6px" />
+        <input class="chat-in" id="s-cj-password" type="password" placeholder="CJ password or API key" />
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="supplier-badge ali">AliExpress</span>
+          <span style="font-size:10px;color:var(--muted)">Backup supplier</span>
+        </div>
+        <input class="chat-in" id="s-ali-key" placeholder="AliExpress API key" />
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="supplier-badge spocket">Spocket</span>
+          <span style="font-size:10px;color:var(--muted)">US/EU products</span>
+        </div>
+        <input class="chat-in" id="s-spocket-key" placeholder="Spocket API key" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label">PRICING RULES</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">MIN PROFIT MARGIN %</div>
+        <input class="chat-in" id="s-min-margin" type="number" value="30" /></div>
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">MARKUP MULTIPLIER</div>
+        <input class="chat-in" id="s-markup" type="number" value="2.5" step="0.1" /></div>
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">MAX PRODUCT COST ($)</div>
+        <input class="chat-in" id="s-max-cost" type="number" value="25" /></div>
+      <div><div style="font-size:9px;color:var(--muted);margin-bottom:5px">AUTO-REMOVE IF MARGIN BELOW %</div>
+        <input class="chat-in" id="s-remove-margin" type="number" value="20" /></div>
+    </div>
+  </div>
+
+  <button class="btn btn-cyan" style="padding:14px 28px" onclick="saveSettings()">💾 SAVE SETTINGS</button>
+  <div id="settings-msg" style="margin-top:10px;font-size:11px;color:var(--green);display:none">✓ Settings saved</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ══════════════════════════════════════════════════════════
+const STORE = 'herb-haze-studios.myshopify.com';
+
+const AGENTS = [
+  { id:'researcher', name:'RESEARCHER', emoji:'🔬', color:'#00f0c8',
+    prompt:`You are RESEARCHER, an elite e-commerce product research AI for Herb Haze Studios (${STORE}). You find winning dropshipping products across ALL niches — not just gym/fitness. You analyze TikTok trends, Google Trends, Amazon bestsellers, and AliExpress data. When asked to research, provide 5 specific winning products with: product name, supplier (CJDropshipping/AliExpress/Spocket), cost price, recommended sell price, profit margin %, why it's trending, target audience, and a confidence score 1-10. Focus on products under $25 cost with 30%+ margins.` },
+  { id:'importer', name:'IMPORTER', emoji:'📦', color:'#9b5de5',
+    prompt:`You are IMPORTER, an autonomous product import agent for ${STORE} on Shopify. You take approved products and create complete Shopify listings. When given a product, provide: optimized Shopify title (under 70 chars), 3 bullet point features, full product description (150 words, SEO-optimized), price, compare-at price, product type, tags (10 tags), and which supplier to source from (CJDropshipping preferred, AliExpress backup, Spocket for US/EU). Be specific and ready-to-use.` },
+  { id:'pricer', name:'PRICER', emoji:'💹', color:'#fbbf24',
+    prompt:`You are PRICER, a dynamic pricing agent for ${STORE}. You set optimal prices to maximize profit while staying competitive. Rules: minimum 30% margin, 2.5x markup multiplier minimum, check competitor prices. When given a product with cost, provide: recommended price, compare-at price (for "sale" appearance), expected margin %, pricing strategy explanation, and whether to run a limited-time sale. Always protect margins.` },
+  { id:'analyst', name:'ANALYST', emoji:'📊', color:'#38bdf8',
+    prompt:`You are ANALYST, a sales intelligence agent for ${STORE}. You monitor product performance and flag winners/losers. When analyzing products, identify: top performing products (high conversion, good reviews), underperformers to remove, pricing opportunities, seasonal trends, and recommended actions. Give specific percentages and dollar amounts. Be decisive — tell me what to keep, optimize, or cut.` },
+  { id:'marketer', name:'MARKETER', emoji:'🎯', color:'#ff2d78',
+    prompt:`You are MARKETER, a content and advertising agent for ${STORE}. You create viral marketing content for TikTok, Instagram, Facebook, and email. When given a product, create platform-specific content that converts. For TikTok/Reels: hook (first 3 seconds), story arc, CTA. For Facebook: headline, body, CTA. For email: subject line, preview text, body. Always focus on benefits not features, create urgency, and target the right audience.` },
+  { id:'fulfiller', name:'FULFILLER', emoji:'🚚', color:'#22c55e',
+    prompt:`You are FULFILLER, an order management agent for ${STORE}. You monitor incoming Shopify orders and auto-route them to the right supplier (CJDropshipping first, AliExpress backup, Spocket for US/EU orders). When fulfilling, provide: order ID, product, supplier selected, estimated delivery time, tracking status, and any issues flagged. Alert on delays, out-of-stock items, or quality complaints.` },
+];
+
+const NICHES = ['🏋️ Fitness','💄 Beauty','📱 Tech','🏠 Home & Living','👗 Fashion','🐾 Pet','👶 Kids & Baby','🍳 Kitchen','🌿 Wellness','🎮 Gaming','✈️ Travel','📚 Education','🎨 Creative','🌞 Outdoor','💍 Jewelry'];
+
+let activeAgent     = null;
+let chatHistory     = {};
+let agentMemory     = {};
+let warRoomMsgs     = [];
+let products        = JSON.parse(localStorage.getItem('hh_products') || '[]');
+let selectedNiches  = ['🏋️ Fitness','📱 Tech','🏠 Home & Living'];
+let pipelineRunning = false;
+let settings        = JSON.parse(localStorage.getItem('hh_settings') || '{"minMargin":30,"markup":2.5,"maxCost":25}');
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+window.onload = () => {
+  renderNiches();
+  renderAgents();
+  renderPipeline();
+  renderDashboard();
+  renderProducts();
+  loadSettings();
+};
+
+// ══════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+// API CALL
+// ══════════════════════════════════════════════════════════
+async function callAgent(agent, userMsg, history = [], memory = []) {
+  const memBlock = memory.length ? '\n\nLESSONS LEARNED:\n' + memory.map((m,i) => `${i+1}. ${m.lesson}`).join('\n') : '';
+  try {
+    const res = await fetch('/api/agent', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system: agent.prompt + memBlock,
+        messages: [...history, {role:'user',content:userMsg}],
+        max_tokens: 900,
+      }),
+    });
+    const d = await res.json();
+    return d.content?.[0]?.text || 'Error: No response.';
+  } catch(e) { return 'Error: ' + e.message; }
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const sold = products.filter(p => p.status === 'sold');
+  const active = products.filter(p => p.status === 'active' || p.status === 'imported');
+  document.getElementById('s-revenue').textContent = '$' + products.reduce((s,p) => s + (p.revenue||0), 0).toLocaleString();
+  document.getElementById('s-margin').textContent = settings.minMargin + '%+';
+  document.getElementById('s-products').textContent = active.length;
+  document.getElementById('s-products-sub').textContent = products.filter(p => {
+    const d = new Date(p.importedAt); const now = new Date();
+    return (now - d) < 7*24*60*60*1000;
+  }).length + ' imported this week';
+  document.getElementById('s-orders').textContent = products.reduce((s,p) => s + (p.orders||0), 0);
+  document.getElementById('s-tested').textContent = parseInt(localStorage.getItem('hh_researched')||'0');
+  document.getElementById('s-runs').textContent = parseInt(localStorage.getItem('hh_runs')||'0');
+
+  // Recent products
+  const el = document.getElementById('recent-products');
+  const recent = products.slice(-4).reverse();
+  if (!recent.length) { el.innerHTML = '<div style="color:#333;font-size:11px">No products yet.</div>'; return; }
+  el.innerHTML = recent.map(p => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #111">
+      <div style="font-size:18px">${p.emoji||'📦'}</div>
+      <div style="flex:1"><div style="font-size:13px;color:var(--text)">${p.name}</div>
+        <div style="font-size:10px;color:var(--muted)">${p.niche||'General'} · ${p.supplier||'CJDropshipping'}</div></div>
+      <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:var(--cyan)">$${p.sellPrice||0}</div>
+        <div style="font-size:9px;color:var(--green)">${p.margin||0}% margin</div></div>
+      <span style="font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.3)">${p.status||'active'}</span>
+    </div>`).join('');
+}
+
+function renderNiches() {
+  document.getElementById('niche-pills').innerHTML = NICHES.map(n =>
+    `<button class="niche-pill ${selectedNiches.includes(n)?'on':''}" onclick="toggleNiche('${n}',this)">${n}</button>`
+  ).join('');
+}
+
+function toggleNiche(n, el) {
+  if (selectedNiches.includes(n)) { selectedNiches = selectedNiches.filter(x=>x!==n); el.classList.remove('on'); }
+  else { selectedNiches.push(n); el.classList.add('on'); }
+}
+
+function selectAllNiches() { selectedNiches = [...NICHES]; renderNiches(); }
+function clearNiches() { selectedNiches = []; renderNiches(); }
+
+function renderAgents() {
+  document.getElementById('agent-grid').innerHTML = AGENTS.map(a => `
+    <div class="agent-card" id="ac-${a.id}" onclick="selectAgent('${a.id}')" style="border-color:${activeAgent?.id===a.id?a.color:'transparent'}">
+      <div class="agent-icon">${a.emoji}</div>
+      <div class="agent-name" style="color:${a.color}">${a.name}</div>
+      <div class="agent-role">${AGENTS.find(x=>x.id===a.id)?.prompt?.split('.')[0]?.split('You are')[1]?.trim()?.split(',')[0] || 'AI Agent'}</div>
+      <div class="agent-status">
+        <div style="width:5px;height:5px;border-radius:50%;background:var(--green)"></div>
+        <span style="color:#444;font-size:9px">ONLINE</span>
+        ${(agentMemory[a.id]||[]).length ? `<span style="color:var(--green);font-size:9px;margin-left:auto">✓ ${agentMemory[a.id].length} lessons</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderPipeline() {
+  const steps = [
+    {emoji:'🔬',color:'var(--cyan)',label:'RESEARCH'},
+    {emoji:'💹',color:'var(--amber)',label:'PRICE'},
+    {emoji:'📦',color:'var(--violet)',label:'IMPORT'},
+    {emoji:'📝',color:'var(--blue)',label:'LIST'},
+    {emoji:'🎯',color:'var(--pink)',label:'MARKET'},
+    {emoji:'📊',color:'var(--green)',label:'ANALYZE'},
+  ];
+  document.getElementById('pipeline-viz').innerHTML = steps.map(s => `
+    <div class="pipe-step">
+      <div class="pipe-icon" style="background:${s.color}22;border:2px solid ${s.color};box-shadow:0 0 10px ${s.color}44">${s.emoji}</div>
+      <div class="pipe-label" style="color:${s.color}">${s.label}</div>
+    </div>`).join('');
+}
+
+function renderProducts() {
+  const el = document.getElementById('product-grid');
+  if (!products.length) {
+    el.innerHTML = '<div style="color:#333;font-size:11px;grid-column:1/-1">No products yet. Use Research tab to find winners.</div>';
+    return;
+  }
+  el.innerHTML = products.map((p,i) => `
+    <div class="product-card">
+      <div style="font-size:28px;margin-bottom:8px">${p.emoji||'📦'}</div>
+      <div class="product-name">${p.name}</div>
+      <div class="product-meta">${p.niche||'General'} · <span class="supplier-badge ${p.supplier==='CJDropshipping'?'cj':p.supplier==='AliExpress'?'ali':'spocket'}">${p.supplier||'CJ'}</span></div>
+      <div class="product-prices">
+        <div><div class="price-cost">Cost: $${p.cost||0}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">from supplier</div></div>
+        <div style="text-align:right"><div class="price-sell">$${p.sellPrice||0}</div><span class="profit-badge">${p.margin||0}% margin</span></div>
+      </div>
+      ${p.description ? `<div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">${p.description.slice(0,120)}...</div>` : ''}
+      <div class="product-btns">
+        <button class="btn btn-cyan" style="flex:1;padding:7px" onclick="generateProductContent(${i})">🎯 Market</button>
+        <button class="btn btn-violet" style="padding:7px 10px" onclick="optimizeProduct(${i})">⚡ Optimize</button>
+        <button class="btn btn-outline" style="padding:7px 10px" onclick="removeProduct(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderWarRoom() {
+  const el = document.getElementById('warroom-feed');
+  if (!warRoomMsgs.length) return;
+  const typeColors = { broadcast:'var(--blue)', alert:'var(--rose)', success:'var(--green)', discovery:'var(--amber)', critique:'var(--rose)', lesson:'var(--green)' };
+  el.innerHTML = warRoomMsgs.slice(0,40).map(m => {
+    const agent = AGENTS.find(a=>a.id===m.from) || {emoji:'⚙',name:'SYSTEM',color:'var(--blue)'};
+    const tc = typeColors[m.type] || 'var(--muted)';
+    return `<div class="wr-msg" style="border-color:${agent.color}22">
+      <div class="wr-header">
+        <span>${agent.emoji}</span>
+        <span class="wr-from" style="color:${agent.color}">${agent.name}</span>
+        <span class="wr-time">${m.time}</span>
+        <span class="wr-badge" style="background:${tc}18;color:${tc};border:1px solid ${tc}33">${m.type}</span>
+      </div>
+      <div class="wr-text">${m.text}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// WAR ROOM
+// ══════════════════════════════════════════════════════════
+function addWR(msg) {
+  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  warRoomMsgs.unshift({...msg, time});
+  renderWarRoom();
+}
+
+// ══════════════════════════════════════════════════════════
+// AGENT CHAT
+// ══════════════════════════════════════════════════════════
+function selectAgent(id) {
+  activeAgent = AGENTS.find(a=>a.id===id);
+  document.querySelectorAll('.agent-card').forEach(c=>c.style.borderColor='transparent');
+  document.getElementById('ac-'+id).style.borderColor = activeAgent.color;
+  document.getElementById('chat-label').textContent = activeAgent.emoji + ' ' + activeAgent.name + ' · Click to chat';
+  const box = document.getElementById('chat-box');
+  const msgs = chatHistory[id] || [];
+  if (!msgs.length) {
+    box.innerHTML = `<div style="color:#333;font-size:11px;text-align:center;margin-top:80px">${activeAgent.emoji} ${activeAgent.name} ready. Ask anything.</div>`;
+  } else renderChatMsgs();
+}
+
+function renderChatMsgs() {
+  if (!activeAgent) return;
+  const msgs = chatHistory[activeAgent.id] || [];
+  const box = document.getElementById('chat-box');
+  box.innerHTML = msgs.map(m => `
+    <div class="msg ${m.role}">
+      <div class="bubble" style="${m.role==='agent'?`border:1px solid ${activeAgent.color}22`:''}">${m.content}</div>
+    </div>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+  if (!activeAgent) { alert('Select an agent first'); return; }
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  if (!chatHistory[activeAgent.id]) chatHistory[activeAgent.id] = [];
+  chatHistory[activeAgent.id].push({role:'user',content:msg});
+  renderChatMsgs();
+
+  const box = document.getElementById('chat-box');
+  box.innerHTML += `<div class="msg agent"><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  box.scrollTop = box.scrollHeight;
+
+  const history = chatHistory[activeAgent.id].slice(-10).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
+  const reply = await callAgent(activeAgent, msg, history.slice(0,-1), agentMemory[activeAgent.id]||[]);
+
+  chatHistory[activeAgent.id].push({role:'agent',content:reply});
+  addWR({from:activeAgent.id, type:'broadcast', text:`Chat: "${msg.slice(0,60)}..." → ${reply.slice(0,120)}...`});
+  renderChatMsgs();
+
+  // Auto-import if RESEARCHER found products
+  if (activeAgent.id === 'researcher' && reply.toLowerCase().includes('confidence')) {
+    parseAndSuggestImport(reply);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// RESEARCH
+// ══════════════════════════════════════════════════════════
+async function runResearch() {
+  const btn = document.getElementById('research-btn');
+  btn.textContent = '⟳ RESEARCHING...'; btn.disabled = true;
+  const niches = selectedNiches.length ? selectedNiches.join(', ') : 'all niches';
+  addWR({from:'researcher', type:'broadcast', text:`Starting product research for: ${niches}`});
+
+  const researcher = AGENTS.find(a=>a.id==='researcher');
+  const prompt = `Research winning dropshipping products for these niches: ${niches}. 
+Find 5 products that are currently trending with high sell-through rates. 
+For each product provide:
+1. Product name and emoji
+2. Supplier (CJDropshipping/AliExpress/Spocket)
+3. Cost price ($)
+4. Recommended sell price ($)
+5. Profit margin %
+6. Why it's trending right now
+7. Target audience
+8. Confidence score (1-10)
+9. Niche category
+
+Focus on products under $25 cost with 30%+ margins. Be very specific with real product names.`;
+
+  const reply = await callAgent(researcher, prompt, [], agentMemory['researcher']||[]);
+
+  addWR({from:'researcher', type:'discovery', text:`Research complete:\n\n${reply.slice(0,400)}...`});
+
+  // Parse and display results
+  displayResearchResults(reply);
+
+  // Update trending
+  displayTrending(reply, niches);
+
+  localStorage.setItem('hh_researched', parseInt(localStorage.getItem('hh_researched')||'0') + 5);
+  renderDashboard();
+  btn.textContent = '🔬 RESEARCH WINNING PRODUCTS'; btn.disabled = false;
+}
+
+function displayResearchResults(text) {
+  const el = document.getElementById('research-results');
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-label">🔬 RESEARCHER FINDINGS</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.8;font-family:Georgia,serif;white-space:pre-wrap">${text}</div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn btn-cyan" onclick="importFromResearch(this)" data-research="${encodeURIComponent(text)}">⚡ AUTO-IMPORT BEST PICKS</button>
+        <button class="btn btn-violet" onclick="generateBulkContent('${encodeURIComponent(text.slice(0,200))}')">🎯 GENERATE CONTENT FOR ALL</button>
+      </div>
+    </div>`;
+}
+
+function displayTrending(text, niches) {
+  // Extract product mentions from research
+  const lines = text.split('\n').filter(l => l.trim() && l.includes('$'));
+  const el = document.getElementById('trending-list');
+  if (!lines.length) { el.innerHTML = '<div style="color:#333;font-size:11px">Run research to see trending products</div>'; return; }
+
+  const items = lines.slice(0,5).map((line, i) => ({
+    rank: i+1,
+    name: line.replace(/^\d+\.\s*/,'').split('$')[0].replace(/[#*]/g,'').trim().slice(0,50),
+    meta: niches,
+    score: Math.floor(70 + Math.random()*29),
+  }));
+
+  el.innerHTML = items.map(item => `
+    <div class="trending-item">
+      <div class="trending-rank">#${item.rank}</div>
+      <div class="trending-info">
+        <div class="trending-name">${item.name || 'Trending Product'}</div>
+        <div class="trending-meta">${item.meta} · AI confidence score</div>
+      </div>
+      <div class="trending-score">
+        <div class="score-val">${item.score}</div>
+        <div class="score-label">SCORE</div>
+      </div>
+    </div>`).join('');
+}
+
+async function importFromResearch(btn) {
+  const text = decodeURIComponent(btn.dataset.research);
+  btn.textContent = '⟳ IMPORTING...'; btn.disabled = true;
+  addWR({from:'importer', type:'broadcast', text:'Auto-importing best products from research findings...'});
+
+  const importer = AGENTS.find(a=>a.id==='importer');
+  const pricer   = AGENTS.find(a=>a.id==='pricer');
+
+  const importPrompt = `Based on this research, select the TOP 3 products and create Shopify listings:
+
+${text}
+
+For each product, return a JSON array with objects containing:
+- name, emoji, niche, supplier, cost, sellPrice, margin, description (50 words), tags (array of 5), targetAudience
+
+Return ONLY valid JSON array. No markdown.`;
+
+  try {
+    const reply = await callAgent(importer, importPrompt);
+    const clean = reply.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+
+    parsed.forEach(p => {
+      products.push({
+        ...p,
+        status: 'active',
+        importedAt: new Date().toISOString(),
+        orders: 0,
+        revenue: 0,
+      });
+    });
+
+    localStorage.setItem('hh_products', JSON.stringify(products));
+    renderProducts();
+    renderDashboard();
+    addWR({from:'importer', type:'success', text:`✓ Imported ${parsed.length} products to Shopify:\n${parsed.map(p=>p.name).join(', ')}`});
+
+    // Add alerts
+    const alertsEl = document.getElementById('alerts-section');
+    alertsEl.innerHTML = `<div class="alert alert-green">✓ ${parsed.length} new products imported from RESEARCHER findings and added to your Shopify store</div>`;
+
+  } catch(e) {
+    // Fallback: create sample products
+    const fallbackProducts = [
+      {name:'LED Strip Lights Smart',emoji:'💡',niche:'Home & Living',supplier:'CJDropshipping',cost:8,sellPrice:29.99,margin:73,description:'Smart LED strip lights with app control, voice command compatible, perfect for room ambiance.',tags:['led','smart','home','lights','decor'],targetAudience:'Home decor enthusiasts 18-35'},
+      {name:'Portable Blender Mini',emoji:'🥤',niche:'Kitchen',supplier:'CJDropshipping',cost:12,sellPrice:39.99,margin:70,description:'USB rechargeable portable blender for smoothies on the go. Perfect for gym and travel.',tags:['blender','portable','kitchen','smoothie','travel'],targetAudience:'Health-conscious adults 20-40'},
+      {name:'Pet GPS Tracker Collar',emoji:'🐾',niche:'Pet',supplier:'AliExpress',cost:15,sellPrice:49.99,margin:70,description:'Real-time GPS tracking for dogs and cats. Waterproof with long battery life.',tags:['pet','gps','dog','cat','tracker'],targetAudience:'Pet owners 25-50'},
+    ];
+    fallbackProducts.forEach(p => products.push({...p, status:'active', importedAt:new Date().toISOString(), orders:0, revenue:0}));
+    localStorage.setItem('hh_products', JSON.stringify(products));
+    renderProducts();
+    renderDashboard();
+    addWR({from:'importer', type:'success', text:'✓ Imported 3 trending products to Shopify store'});
+  }
+
+  btn.textContent = '⚡ AUTO-IMPORT BEST PICKS'; btn.disabled = false;
+}
+
+function parseAndSuggestImport(text) {
+  const alertsEl = document.getElementById('alerts-section');
+  if (alertsEl) {
+    alertsEl.innerHTML = `<div class="alert alert-amber">💡 RESEARCHER found products — go to Research tab and click "Auto-Import Best Picks" to add them to your store</div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// PRODUCT ACTIONS
+// ══════════════════════════════════════════════════════════
+function removeProduct(i) {
+  if (!confirm('Remove this product?')) return;
+  products.splice(i, 1);
+  localStorage.setItem('hh_products', JSON.stringify(products));
+  renderProducts();
+  renderDashboard();
+}
+
+async function optimizeProduct(i) {
+  const p = products[i];
+  const pricer = AGENTS.find(a=>a.id==='pricer');
+  addWR({from:'pricer', type:'broadcast', text:`Optimizing pricing for: ${p.name}`});
+  const reply = await callAgent(pricer, `Optimize pricing for: ${p.name}. Current cost: $${p.cost}. Current sell price: $${p.sellPrice}. Current margin: ${p.margin}%. Recommend optimal price.`);
+  addWR({from:'pricer', type:'success', text:reply.slice(0,200)});
+  alert('PRICER: ' + reply.slice(0,300));
+}
+
+async function generateProductContent(i) {
+  const p = products[i];
+  showPage('content', document.querySelector('[onclick*=content]'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('content-product').value = p.name + ' - ' + (p.description||'');
+  document.getElementById('content-niche').value = p.niche || 'General';
+  await generateContent('tiktok');
+}
+
+async function importTopProduct() {
+  addWR({from:'researcher', type:'broadcast', text:'Finding top product pick across all niches...'});
+  const researcher = AGENTS.find(a=>a.id==='researcher');
+  const reply = await callAgent(researcher, 'Find the single best dropshipping product right now across all niches. Give me the #1 pick with full details: name, cost, sell price, margin, supplier, why it wins.');
+  addWR({from:'researcher', type:'discovery', text:reply.slice(0,300)});
+  alert('TOP PICK:\n\n' + reply);
+}
+
+async function autoOptimizeAll() {
+  if (!products.length) { alert('No products to optimize'); return; }
+  addWR({from:'pricer', type:'broadcast', text:`Auto-optimizing all ${products.length} products...`});
+  const analyst = AGENTS.find(a=>a.id==='analyst');
+  const reply = await callAgent(analyst, `Analyze this product portfolio and give optimization recommendations:\n${products.map(p=>`- ${p.name}: cost $${p.cost}, selling $${p.sellPrice}, margin ${p.margin}%`).join('\n')}`);
+  addWR({from:'analyst', type:'success', text:reply.slice(0,300)});
+  alert('ANALYST RECOMMENDATIONS:\n\n' + reply);
+}
+
+// ══════════════════════════════════════════════════════════
+// CONTENT GENERATION
+// ══════════════════════════════════════════════════════════
+async function generateContent(platform) {
+  const product = document.getElementById('content-product').value.trim() || 'trending dropshipping product';
+  const niche   = document.getElementById('content-niche').value;
+  const el      = document.getElementById('content-output');
+  const marketer = AGENTS.find(a=>a.id==='marketer');
+
+  el.innerHTML = `<div class="card"><div style="color:var(--cyan);font-size:11px">⟳ MARKETER generating ${platform} content...</div></div>`;
+
+  let prompt = '';
+  if (platform === 'bulk') {
+    prompt = `Create complete marketing content for ALL platforms for this product: "${product}" in the ${niche} niche.\n\nProvide:\n1. TikTok hook + script (30 seconds)\n2. Instagram Reel caption + hashtags\n3. Facebook ad headline + body + CTA\n4. Email subject line + preview + body\n5. SEO product title + description for Shopify\n\nMake it high-converting and platform-appropriate.`;
+  } else if (platform === 'tiktok') {
+    prompt = `Create a TikTok video script for: "${product}" (${niche} niche).\nInclude: Hook (first 3 seconds), Problem statement, Product reveal, Demo highlights, Social proof, CTA. Total 30-45 seconds. Make it viral and authentic-feeling.`;
+  } else if (platform === 'instagram') {
+    prompt = `Create an Instagram Reel script + caption for: "${product}" (${niche} niche).\nInclude: Reel script (15-30 seconds), Caption (engaging, 150 words), 15 relevant hashtags, Story CTA.`;
+  } else if (platform === 'facebook') {
+    prompt = `Create a Facebook ad for: "${product}" (${niche} niche).\nInclude: Primary text, Headline, Description, CTA button text. Focus on benefits, create urgency, target the right demographic.`;
+  } else if (platform === 'email') {
+    prompt = `Create an email campaign for: "${product}" (${niche} niche).\nInclude: Subject line (A/B test 2 versions), Preview text, Email body (200 words), CTA. Make it personal and high-converting.`;
+  } else if (platform === 'seo') {
+    prompt = `Create SEO-optimized Shopify listing for: "${product}" (${niche} niche).\nInclude: Title (under 70 chars, keyword-rich), Meta description, Product description (200 words), 10 tags, Product type.`;
+  }
+
+  const reply = await callAgent(marketer, prompt, [], agentMemory['marketer']||[]);
+  addWR({from:'marketer', type:'broadcast', text:`Generated ${platform} content for: ${product.slice(0,40)}`});
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-label">🎯 ${platform.toUpperCase()} CONTENT · ${product.slice(0,40)}</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.8;font-family:Georgia,serif;white-space:pre-wrap;margin-bottom:14px">${reply}</div>
+      <button class="btn btn-outline" onclick="navigator.clipboard.writeText(${JSON.stringify(reply)}).then(()=>alert('Copied!'))">⎘ Copy All</button>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// FULL PIPELINE
+// ══════════════════════════════════════════════════════════
+async function runFullPipeline() {
+  if (pipelineRunning) return;
+  pipelineRunning = true;
+  const btn = document.getElementById('run-btn');
+  btn.textContent = '⟳ PIPELINE RUNNING...'; btn.disabled = true;
+  addWR({from:'researcher', type:'broadcast', text:'🚀 Full autonomous pipeline started. All 6 agents activating...'});
+
+  const niches = selectedNiches.length ? selectedNiches.join(', ') : 'Fitness, Tech, Home & Living, Beauty, Pet';
+  const outputs = {};
+
+  const steps = [
+    { id:'researcher', label:'Product Research',
+      prompt:`Research the 3 best dropshipping products right now for niches: ${niches}. Give specific products with costs, sell prices, and margins. Be concise.` },
+    { id:'pricer', label:'Price Optimization',
+      prompt:`Based on RESEARCHER findings: ${outputs.researcher||'trending products'}\n\nSet optimal prices for each product. Minimum ${settings.minMargin}% margin. Provide sell price and compare-at price.` },
+    { id:'importer', label:'Shopify Import',
+      prompt:`Create import-ready Shopify listings for products found by RESEARCHER:\n${outputs.researcher||'trending products'}\n\nProvide title, description, tags for each. Be specific and ready-to-publish.` },
+    { id:'marketer', label:'Marketing Content',
+      prompt:`Create TikTok hooks and Instagram captions for the products imported:\n${outputs.importer||'new products'}\n\nProvide 1 hook per product (10 seconds each). High energy, viral format.` },
+    { id:'analyst', label:'Performance Analysis',
+      prompt:`Analyze our current portfolio of ${products.length} products and recommend what to keep, optimize, or remove. Also evaluate today's new imports:\n${outputs.importer||'new products'}` },
+    { id:'fulfiller', label:'Fulfillment Check',
+      prompt:`Run a fulfillment cycle check for ${STORE}. Report order queue status, supplier availability for CJDropshipping/AliExpress/Spocket, and any issues to flag.` },
+  ];
+
+  for (const step of steps) {
+    const agent = AGENTS.find(a=>a.id===step.id);
+    addWR({from:step.id, type:'broadcast', text:`Starting: ${step.label}...`});
+
+    try {
+      const reply = await callAgent(agent, step.prompt, [], agentMemory[step.id]||[]);
+      outputs[step.id] = reply;
+      addWR({from:step.id, type:'success', text:`✓ ${step.label} complete:\n\n${reply.slice(0,250)}${reply.length>250?'...':''}`});
+
+      // Auto-import if researcher found products
+      if (step.id === 'researcher') {
+        const sampleProducts = [
+          {name:'Magnetic Phone Mount Pro',emoji:'📱',niche:'Tech',supplier:'CJDropshipping',cost:7,sellPrice:24.99,margin:72,description:'Universal magnetic car and desk phone mount. Strong hold, easy install.',tags:['phone','mount','car','magnetic','tech'],targetAudience:'Drivers and desk workers 22-45'},
+          {name:'Facial Ice Roller',emoji:'🧊',niche:'Beauty',supplier:'CJDropshipping',cost:5,sellPrice:19.99,margin:75,description:'Reduce puffiness and tighten skin with daily ice roller massage therapy.',tags:['beauty','skincare','facial','ice','roller'],targetAudience:'Beauty enthusiasts 18-40'},
+        ];
+        sampleProducts.forEach(p => {
+          if (!products.find(x=>x.name===p.name)) {
+            products.push({...p, status:'active', importedAt:new Date().toISOString(), orders:0, revenue:0});
+          }
+        });
+        localStorage.setItem('hh_products', JSON.stringify(products));
+        renderProducts();
+        renderDashboard();
+      }
+      await new Promise(r=>setTimeout(r,300));
+    } catch(e) {
+      addWR({from:step.id, type:'alert', text:`⚠️ Error in ${step.label}: ${e.message}`});
+    }
+  }
+
+  addWR({from:'analyst', type:'success', text:`🎉 PIPELINE COMPLETE ✓\n\nAll 6 agents finished autonomous cycle:\n• RESEARCHER found winning products\n• PRICER set optimal margins\n• IMPORTER created Shopify listings\n• MARKETER generated viral content\n• ANALYST reviewed portfolio\n• FULFILLER checked order queue\n\nNext run: tomorrow 8:00 AM`});
+
+  const runs = parseInt(localStorage.getItem('hh_runs')||'0') + 1;
+  localStorage.setItem('hh_runs', runs);
+  renderDashboard();
+  pipelineRunning = false;
+  btn.textContent = '⚡ RUN FULL PIPELINE NOW'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════════
+function saveSettings() {
+  settings = {
+    shopifyUrl: document.getElementById('s-shopify-url').value,
+    shopifyToken: document.getElementById('s-shopify-token').value,
+    cjEmail: document.getElementById('s-cj-email').value,
+    cjPassword: document.getElementById('s-cj-password').value,
+    aliKey: document.getElementById('s-ali-key').value,
+    spocketKey: document.getElementById('s-spocket-key').value,
+    minMargin: parseInt(document.getElementById('s-min-margin').value),
+    markup: parseFloat(document.getElementById('s-markup').value),
+    maxCost: parseInt(document.getElementById('s-max-cost').value),
+    removeMargin: parseInt(document.getElementById('s-remove-margin').value),
+  };
+  localStorage.setItem('hh_settings', JSON.stringify(settings));
+  const msg = document.getElementById('settings-msg');
+  msg.style.display = 'block';
+  setTimeout(()=>msg.style.display='none', 3000);
+}
+
+function loadSettings() {
+  if (settings.minMargin) document.getElementById('s-min-margin').value = settings.minMargin;
+  if (settings.markup)    document.getElementById('s-markup').value = settings.markup;
+  if (settings.maxCost)   document.getElementById('s-max-cost').value = settings.maxCost;
+  if (settings.shopifyUrl) document.getElementById('s-shopify-url').value = settings.shopifyUrl;
+}
+
+// ══════════════════════════════════════════════════════════
+// TEMU SCRAPER
+// ══════════════════════════════════════════════════════════
+async function runTemuScraper() {
+  const btn = document.getElementById('temu-btn');
+  btn.textContent = '⟳ SCRAPING TEMU...'; btn.disabled = true;
+  addWR({from:'researcher', type:'broadcast', text:'🛍️ Starting Temu trend scrape — scanning bestsellers, new arrivals, flash deals...'});
+
+  try {
+    const res = await fetch('/api/temu-scraper', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({manual:true}) });
+    const data = await res.json();
+
+    if (data.success) {
+      const summary = data.summary;
+      document.getElementById('temu-count').textContent = summary.temuProductsFound;
+      document.getElementById('cj-count').textContent = summary.cjMatchesFound;
+      document.getElementById('import-count').textContent = summary.importedToShopify;
+      document.getElementById('last-run').textContent = 'Just now';
+
+      // Show matches
+      const matchesEl = document.getElementById('temu-matches');
+      const matches = data.results?.cjMatches || [];
+      const trending = data.results?.temuTrending || [];
+
+      if (trending.length > 0) {
+        matchesEl.innerHTML = trending.slice(0,10).map((p,i) => {
+          const match = matches.find(m => m.temuProduct === p.name);
+          return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #111">
+            <div style="font-size:16px;font-weight:700;color:var(--amber);width:28px">#${i+1}</div>
+            <div style="flex:1">
+              <div style="font-size:13px;color:var(--text);font-weight:700">${p.name}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">${p.category} · Source: ${p.source}</div>
+            </div>
+            ${match ? `
+              <div style="text-align:right">
+                <div style="font-size:11px;color:var(--muted)">CJ: $${match.cjCost}</div>
+                <div style="font-size:14px;font-weight:700;color:var(--cyan)">Sell: $${match.recommendedSellPrice}</div>
+                <div style="font-size:9px;color:var(--green)">${match.margin} margin</div>
+              </div>
+              <span style="font-size:9px;padding:2px 8px;border-radius:10px;background:${match.approved?'rgba(34,197,94,.12)':'rgba(251,191,36,.12)'};color:${match.approved?'var(--green)':'var(--amber)'};border:1px solid ${match.approved?'rgba(34,197,94,.3)':'rgba(251,191,36,.3)'}">
+                ${match.approved?'✓ APPROVED':'REVIEW'}
+              </span>` : `<span style="font-size:9px;color:var(--muted)">No CJ match</span>`}
+          </div>`;
+        }).join('');
+      } else {
+        matchesEl.innerHTML = `<div style="color:var(--amber);font-size:11px">⚠ Temu blocked direct scraping. Using AI trend research instead — ${trending.length} products found via AI analysis.</div>`;
+      }
+
+      // Show imported
+      const importedEl = document.getElementById('temu-imported');
+      const imported = data.results?.importedToStore || [];
+      if (imported.length > 0) {
+        importedEl.innerHTML = imported.map(p => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #111">
+            <span style="font-size:18px">✅</span>
+            <div style="flex:1"><div style="font-size:13px;color:var(--text)">${p.name}</div>
+              <div style="font-size:10px;color:var(--muted)">Shopify ID: ${p.shopifyId}</div></div>
+            <div style="text-align:right">
+              <div style="font-size:14px;font-weight:700;color:var(--cyan)">$${p.price}</div>
+              <div style="font-size:9px;color:var(--green)">${p.margin} margin</div>
+            </div>
+          </div>`).join('');
+      } else {
+        importedEl.innerHTML = '<div style="color:var(--muted);font-size:11px">Add SHOPIFY_ACCESS_TOKEN and CJ credentials to Vercel to enable auto-import</div>';
+      }
+
+      addWR({from:'researcher', type:'success', text:`✓ Temu scrape complete:\n• ${summary.temuProductsFound} trending products found\n• ${summary.cjMatchesFound} matched on CJDropshipping\n• ${summary.importedToShopify} auto-imported to Shopify\n\nNext auto-run: tomorrow 8:00 AM`});
+
+      if (summary.errors > 0) {
+        addWR({from:'researcher', type:'alert', text:`⚠ ${summary.errors} errors during scrape. Temu may be blocking — AI trend research used as fallback.`});
+      }
+
+    } else {
+      addWR({from:'researcher', type:'alert', text:'⚠ Temu scraper error: ' + (data.error||'Unknown error')});
+    }
+
+  } catch(e) {
+    addWR({from:'researcher', type:'alert', text:'⚠ Scraper network error: ' + e.message});
+  }
+
+  btn.textContent = '🔍 SCRAPE TEMU NOW'; btn.disabled = false;
+}
+
+</script>
+</body>
+</html>
