@@ -7,12 +7,86 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#04030a;--panel:#08070f;--card:#0c0b18;--border:#161428;
-  --cyan:#00f0c8;--violet:#9b5de5;--amber:#fbbf24;--rose:#f43f5e;
-  --green:#22c55e;--blue:#38bdf8;--pink:#ff2d78;--orange:#ff6b00;
-  --text:#ede9ff;--muted:#4a4470;--dim:#0d0b19;
+  --bg:#0a0608;--panel:#110a0d;--card:#160d10;--border:#2a1520;
+  --cyan:#e8a045;--violet:#c44b6e;--amber:#e8c56e;--rose:#c44b6e;
+  --green:#7ab87a;--blue:#9fb8d8;--pink:#d4607a;--orange:#d4822a;
+  --text:#f0e6d3;--muted:#6b4a52;--dim:#0d080a;
 }
-body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;position:relative;}
+
+/* Inuyasha subtle background */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    /* Sacred jewel glow - top right */
+    radial-gradient(ellipse 300px 300px at 92% 8%, rgba(196,75,110,.06) 0%, transparent 70%),
+    /* Demon energy - bottom left */
+    radial-gradient(ellipse 400px 400px at 5% 95%, rgba(139,0,0,.08) 0%, transparent 60%),
+    /* Forest mist - center */
+    radial-gradient(ellipse 600px 400px at 50% 50%, rgba(20,8,10,.4) 0%, transparent 100%),
+    /* Ground fog */
+    radial-gradient(ellipse 800px 200px at 50% 100%, rgba(80,20,30,.12) 0%, transparent 60%);
+}
+
+/* Floating sacred jewel shards */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle 1px at 15% 20%, rgba(232,160,69,.3) 0%, transparent 100%),
+    radial-gradient(circle 1px at 75% 15%, rgba(196,75,110,.4) 0%, transparent 100%),
+    radial-gradient(circle 2px at 85% 60%, rgba(232,197,110,.2) 0%, transparent 100%),
+    radial-gradient(circle 1px at 25% 75%, rgba(232,160,69,.25) 0%, transparent 100%),
+    radial-gradient(circle 1px at 60% 85%, rgba(196,75,110,.2) 0%, transparent 100%),
+    radial-gradient(circle 2px at 40% 35%, rgba(232,197,110,.15) 0%, transparent 100%),
+    radial-gradient(circle 1px at 90% 40%, rgba(232,160,69,.2) 0%, transparent 100%),
+    radial-gradient(circle 1px at 10% 55%, rgba(196,75,110,.15) 0%, transparent 100%);
+  animation: floatShards 20s ease-in-out infinite alternate;
+}
+
+@keyframes floatShards {
+  0%  { transform: translateY(0px) rotate(0deg); opacity:.7; }
+  100%{ transform: translateY(-15px) rotate(2deg); opacity:1; }
+}
+
+/* Subtle bamboo/forest grid lines */
+nav, .page, .card, .stat, .product-card, .agent-card, .wr-msg {
+  position:relative;
+  z-index:1;
+}
+
+/* Japanese ink brush border effect on cards */
+.card {
+  background: linear-gradient(135deg, #160d10 0%, #110a0d 100%) !important;
+  border-color: #2a1520 !important;
+}
+.card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(232,160,69,.2), rgba(196,75,110,.2), transparent);
+  border-radius:12px 12px 0 0;
+}
+
+/* Nav Inuyasha style */
+nav {
+  background: linear-gradient(180deg, #0e0608 0%, #0a0406 100%) !important;
+  border-bottom: 1px solid #2a1520 !important;
+  box-shadow: 0 2px 20px rgba(139,0,0,.15);
+}
+
+/* Stat cards with jewel shard glow */
+.stat {
+  background: linear-gradient(135deg, #160d10, #110a0d) !important;
+}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#222;}
 
 /* NAV */
@@ -32,10 +106,11 @@ nav{background:#060509;border-bottom:1px solid var(--border);padding:12px 24px;d
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
 .card-label{font-size:9px;color:#383838;letter-spacing:3px;margin-bottom:10px;}
-.grid-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px;}
-.stat{background:var(--card);border-radius:10px;padding:14px 16px;}
-.stat-val{font-size:24px;font-weight:700;margin-top:6px;}
-.stat-sub{font-size:10px;color:var(--muted);margin-top:3px;}
+.grid-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.stat{background:var(--card);border-radius:12px;padding:18px 20px;transition:transform 0.2s,box-shadow 0.2s;cursor:default;}
+.stat:hover{transform:translateY(-2px);}
+.stat-val{font-size:32px;font-weight:700;margin-top:8px;letter-spacing:-1px;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:5px;}
 
 /* AGENTS */
 .agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:20px;}
@@ -49,14 +124,16 @@ nav{background:#060509;border-bottom:1px solid var(--border);padding:12px 24px;d
 
 /* PRODUCTS */
 .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
-.product-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;transition:border-color 0.2s;}
-.product-card:hover{border-color:#ffffff22;}
-.product-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
-.product-meta{font-size:10px;color:var(--muted);margin-bottom:10px;}
-.product-prices{display:flex;justify-content:space-between;margin-bottom:10px;}
+.product-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all 0.2s;}
+.product-card:hover{border-color:rgba(0,240,200,.3);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.product-img{width:100%;height:140px;background:linear-gradient(135deg,#0d0b19,#161428);display:flex;align-items:center;justify-content:center;font-size:52px;border-bottom:1px solid var(--border);}
+.product-body{padding:14px;}
+.product-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;}
+.product-meta{font-size:10px;color:var(--muted);margin-bottom:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.product-prices{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;padding:10px;background:rgba(0,240,200,.05);border-radius:8px;border:1px solid rgba(0,240,200,.1);}
 .price-cost{font-size:11px;color:var(--muted);}
-.price-sell{font-size:16px;font-weight:700;color:var(--cyan);}
-.profit-badge{font-size:9px;padding:2px 8px;border-radius:20px;background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.price-sell{font-size:22px;font-weight:700;color:var(--cyan);}
+.profit-badge{font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);font-weight:700;}
 .product-btns{display:flex;gap:6px;}
 
 /* CHAT */
@@ -138,7 +215,10 @@ nav{background:#060509;border-bottom:1px solid var(--border);padding:12px 24px;d
 <body>
 
 <nav>
-  <div class="logo">HERB HAZE <span>AI</span></div>
+  <div class="logo" style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:16px">⛩</span> HERB HAZE <span>AI</span>
+    <span style="font-size:10px;color:#6b4a52;letter-spacing:2px;margin-left:4px">封建時代</span>
+  </div>
   <div class="nav-tabs">
     <button class="tab active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
     <button class="tab" onclick="showPage('research',this)">🔬 Research</button>
@@ -149,16 +229,20 @@ nav{background:#060509;border-bottom:1px solid var(--border);padding:12px 24px;d
     <button class="tab" onclick="showPage('temu',this)">🛍️ Temu Trends</button>
     <button class="tab" onclick="showPage('settings',this)">⚙ Settings</button>
   </div>
-  <div class="live-dot" title="All systems live"></div>
+  <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+    <div class="live-dot" style="background:#e8a045;box-shadow:0 0 8px #e8a045" title="All systems live"></div>
+    <span style="font-size:9px;color:#6b4a52;letter-spacing:2px">聖なる力</span>
+  </div>
 </nav>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- DASHBOARD -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <div id="page-dashboard" class="page active">
-  <div style="margin-bottom:20px">
-    <div style="font-size:9px;color:#333;letter-spacing:4px">HERB HAZE STUDIOS · herb-haze-studios.myshopify.com</div>
-    <div style="font-size:22px;font-weight:700;color:#fff;margin-top:4px">Autonomous Dropshipping HQ</div>
+  <div style="margin-bottom:20px;position:relative">
+    <div style="position:absolute;right:0;top:-10px;font-size:80px;opacity:0.04;pointer-events:none;user-select:none">⛩</div>
+    <div style="font-size:9px;color:#6b4a52;letter-spacing:4px">HERB HAZE STUDIOS · herb-haze-studios.myshopify.com</div>
+    <div style="font-size:22px;font-weight:700;color:#f0e6d3;margin-top:4px">Autonomous Dropshipping HQ</div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <span class="supplier-badge cj">CJDropshipping ✓</span>
       <span class="supplier-badge ali">AliExpress ✓</span>
@@ -637,18 +721,35 @@ function renderProducts() {
   }
   el.innerHTML = products.map((p,i) => `
     <div class="product-card">
-      <div style="font-size:28px;margin-bottom:8px">${p.emoji||'📦'}</div>
-      <div class="product-name">${p.name}</div>
-      <div class="product-meta">${p.niche||'General'} · <span class="supplier-badge ${p.supplier==='CJDropshipping'?'cj':p.supplier==='AliExpress'?'ali':'spocket'}">${p.supplier||'CJ'}</span></div>
-      <div class="product-prices">
-        <div><div class="price-cost">Cost: $${p.cost||0}</div><div style="font-size:9px;color:var(--muted);margin-top:2px">from supplier</div></div>
-        <div style="text-align:right"><div class="price-sell">$${p.sellPrice||0}</div><span class="profit-badge">${p.margin||0}% margin</span></div>
-      </div>
-      ${p.description ? `<div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">${p.description.slice(0,120)}...</div>` : ''}
-      <div class="product-btns">
-        <button class="btn btn-cyan" style="flex:1;padding:7px" onclick="generateProductContent(${i})">🎯 Market</button>
-        <button class="btn btn-violet" style="padding:7px 10px" onclick="optimizeProduct(${i})">⚡ Optimize</button>
-        <button class="btn btn-outline" style="padding:7px 10px" onclick="removeProduct(${i})">✕</button>
+      <div class="product-img">${p.emoji||'📦'}</div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta">
+          <span class="supplier-badge ${p.supplier==='CJDropshipping'?'cj':p.supplier==='AliExpress'?'ali':'spocket'}">${p.supplier||'CJ'}</span>
+          <span style="color:var(--muted)">·</span>
+          <span style="color:var(--muted)">${p.niche||'General'}</span>
+          <span style="margin-left:auto;font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.3)">${p.status||'active'}</span>
+        </div>
+        <div class="product-prices">
+          <div>
+            <div class="price-cost" style="font-size:9px;margin-bottom:2px">COST</div>
+            <div style="font-size:16px;font-weight:700;color:#555">$${p.cost||0}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px">→</div>
+            <span class="profit-badge">${p.margin||0}% profit</span>
+          </div>
+          <div style="text-align:right">
+            <div class="price-cost" style="font-size:9px;margin-bottom:2px">SELL PRICE</div>
+            <div class="price-sell">$${p.sellPrice||0}</div>
+          </div>
+        </div>
+        ${p.description ? `<div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6;border-left:2px solid var(--border);padding-left:10px">${p.description.slice(0,100)}...</div>` : ''}
+        <div class="product-btns">
+          <button class="btn btn-cyan" style="flex:1;padding:8px;font-size:10px" onclick="generateProductContent(${i})">🎯 Market</button>
+          <button class="btn btn-violet" style="padding:8px 12px;font-size:10px" onclick="optimizeProduct(${i})">⚡ Optimize</button>
+          <button class="btn btn-outline" style="padding:8px 12px;font-size:10px" onclick="removeProduct(${i})">✕</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1140,6 +1241,46 @@ async function runTemuScraper() {
 
   btn.textContent = '🔍 SCRAPE TEMU NOW'; btn.disabled = false;
 }
+
+
+// ══════════════════════════════════════════════════════════
+// FETCH REAL SHOPIFY DATA
+// ══════════════════════════════════════════════════════════
+async function fetchShopifyData() {
+  try {
+    const res = await fetch('/api/shop', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'shopify_get_orders' }),
+    });
+    const data = await res.json();
+
+    if (data.success && data.orders) {
+      const orders = data.orders;
+      const revenue = orders.reduce((s,o) => s + parseFloat(o.total||0), 0);
+      const unfulfilled = orders.filter(o => o.status === 'unfulfilled').length;
+
+      // Update stat cards with real data
+      document.getElementById('s-revenue').textContent = '$' + revenue.toLocaleString();
+      document.getElementById('s-orders').textContent = orders.length;
+
+      // Show alert if unfulfilled orders
+      if (unfulfilled > 0) {
+        const alertsEl = document.getElementById('alerts-section');
+        if (alertsEl) {
+          alertsEl.innerHTML = `<div class="alert alert-amber">⚠ ${unfulfilled} unfulfilled orders need attention — FULFILLER agent can auto-route them</div>` + alertsEl.innerHTML;
+        }
+      }
+
+      addWR({from:'fulfiller', type:'broadcast', text:`✓ Shopify sync: ${orders.length} orders fetched. Revenue: $${revenue.toFixed(2)}. Unfulfilled: ${unfulfilled}`});
+    }
+  } catch(e) {
+    console.log('Shopify sync:', e.message);
+  }
+}
+
+// Auto-fetch Shopify data on load
+setTimeout(fetchShopifyData, 2000);
 
 </script>
 </body>
