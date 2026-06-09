@@ -1071,11 +1071,32 @@ Return ONLY valid JSON array. No markdown.`;
     localStorage.setItem('hh_products', JSON.stringify(products));
     renderProducts();
     renderDashboard();
-    addWR({from:'importer', type:'success', text:`✓ Imported ${parsed.length} products to Shopify:\n${parsed.map(p=>p.name).join(', ')}`});
+
+    // Push to real Shopify store
+    let shopifyCount = 0;
+    for (const p of parsed) {
+      try {
+        const shopRes = await fetch('/api/shop', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'shopify_create_product', product:p }),
+        });
+        const shopData = await shopRes.json();
+        if (shopData.success) {
+          shopifyCount++;
+          addWR({from:'importer', type:'success', text:`✓ Live on Shopify: ${p.name}\n${shopData.productUrl}`});
+        } else {
+          addWR({from:'importer', type:'alert', text:`⚠ Shopify push failed: ${p.name} — ${shopData.error||shopData.hint}`});
+        }
+      } catch(e) {
+        addWR({from:'importer', type:'alert', text:`⚠ Error pushing ${p.name}: ${e.message}`});
+      }
+    }
+
+    addWR({from:'importer', type:'success', text:`✓ ${shopifyCount}/${parsed.length} products pushed live to herb-haze-studios.myshopify.com`});
 
     // Add alerts
     const alertsEl = document.getElementById('alerts-section');
-    alertsEl.innerHTML = `<div class="alert alert-green">✓ ${parsed.length} new products imported from RESEARCHER findings and added to your Shopify store</div>`;
+    alertsEl.innerHTML = `<div class="alert alert-green">✓ ${parsed.length} products found · ${shopifyCount} pushed live to your Shopify store</div>`;
 
   } catch(e) {
     // Fallback: create sample products
