@@ -1468,7 +1468,6 @@ function exportToShopifyCSV(productsToExport) {
     return;
   }
 
-  // Shopify CSV format headers
   const headers = [
     'Handle','Title','Body (HTML)','Vendor','Type','Tags',
     'Published','Option1 Name','Option1 Value','Variant SKU',
@@ -1478,27 +1477,29 @@ function exportToShopifyCSV(productsToExport) {
     'Image Src','Image Alt Text','Status'
   ];
 
-  const rows = [headers];
+  const rows = [headers.join(',')];
 
-  productsToExport.forEach(p => {
+  productsToExport.forEach((p, i) => {
     const handle = (p.name || 'product').toLowerCase()
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const price = parseFloat(p.sellPrice || p.cost * 2.5 || 19.99).toFixed(2);
-    const compareAt = (parseFloat(price) * 1.3).toFixed(2);
-    const tags = (p.tags || []).join(', ') + ', dropship, trending, herb-haze';
-    const desc = `<p>${p.description || p.name + ' - Premium quality product with fast shipping.'}</p>`;
+    const price      = parseFloat(p.sellPrice || p.cost * 2.5 || 19.99).toFixed(2);
+    const compareAt  = (parseFloat(price) * 1.3).toFixed(2);
+    const tags       = '"' + [(p.tags||[]).join(','), p.niche||'', 'trending', 'dropship', 'herb-haze'].filter(Boolean).join(',') + '"';
+    const desc       = '"<p>' + (p.description || p.name + ' - Premium quality product with fast shipping.').replace(/"/g,"'") + '</p>"';
+    const image      = p.image || getNicheImage(p.niche || 'General');
+    const sku        = handle + '-' + String(i+1).padStart(3,'0');
 
-    rows.push([
+    const row = [
       handle,
-      p.name || 'Product',
+      '"' + (p.name||'Product').replace(/"/g,"'") + '"',
       desc,
       'Herb Haze Studios',
-      p.niche || 'General',
+      '"' + (p.niche||'General') + '"',
       tags,
       'TRUE',
       'Title',
       'Default Title',
-      handle + '-001',
+      sku,
       '0',
       'shopify',
       '999',
@@ -1508,26 +1509,20 @@ function exportToShopifyCSV(productsToExport) {
       compareAt,
       'TRUE',
       'TRUE',
-      p.image || getNicheImage(p.niche || p.category || 'General'),
-      p.name || 'Product',
+      image,
+      '"' + (p.name||'Product').replace(/"/g,"'") + '"',
       'active'
-    ]);
+    ];
+
+    rows.push(row.join(','));
   });
 
-  // Build CSV string
-  const csv = rows.map(row =>
-    row.map(cell => {
-      const str = String(cell || '').replace(/"/g, '""');
-      return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str}"` : str;
-    }).join(',')
-  ).join('\n');
-
-  // Download
+  const csv  = rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `herb-haze-products-${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = 'herb-haze-products-' + new Date().toISOString().slice(0,10) + '.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
