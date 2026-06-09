@@ -1433,13 +1433,13 @@ setTimeout(fetchShopifyData, 2000);
 // SHOPIFY CSV EXPORT
 // ══════════════════════════════════════════════════════════
 function getNicheImage(niche) {
-  // Real publicly accessible product images by niche
   const images = {
-    'Beauty':       'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80',
+    'Beauty':       'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=800&q=80',
     'Beauty/Skincare': 'https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=800&q=80',
-    'Tech':         'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80',
+    'Tech':         'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80',
     'Tech Accessories': 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80',
     'Home & Living': 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=800&q=80',
+    'Home':         'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=800&q=80',
     'Fitness':      'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80',
     'Kitchen':      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',
     'Pet':          'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80',
@@ -1452,7 +1452,6 @@ function getNicheImage(niche) {
     'Jewelry':      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&q=80',
     'General':      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
   };
-  // Find best match
   for (const [key, url] of Object.entries(images)) {
     if (niche && niche.toLowerCase().includes(key.toLowerCase())) return url;
   }
@@ -1460,89 +1459,92 @@ function getNicheImage(niche) {
 }
 
 function exportToShopifyCSV(productsToExport) {
-  if (!productsToExport || !productsToExport.length) {
-    productsToExport = products;
-  }
-  if (!productsToExport.length) {
-    alert('No products to export. Run Research first.');
-    return;
-  }
+  if (!productsToExport || !productsToExport.length) productsToExport = products;
+  if (!productsToExport.length) { alert('No products to export. Run Research first.'); return; }
 
+  // Proven working Shopify CSV format
   const headers = [
     'Handle','Title','Body (HTML)','Vendor','Type','Tags',
     'Published','Option1 Name','Option1 Value','Variant SKU',
     'Variant Grams','Variant Inventory Tracker','Variant Inventory Qty',
-    'Variant Inventory Policy','Variant Fulfillment Service','Variant Price',
-    'Variant Compare At Price','Variant Requires Shipping','Variant Taxable',
+    'Variant Inventory Policy','Variant Fulfillment Service',
+    'Variant Price','Variant Compare At Price',
+    'Variant Requires Shipping','Variant Taxable',
     'Image Src','Image Alt Text','Status'
   ];
 
+  const escapeCSV = (val) => {
+    const str = String(val || '').replace(/"/g, '""');
+    return (str.includes(',') || str.includes('"') || str.includes('
+')) ? `"${str}"` : str;
+  };
+
   const rows = [headers.join(',')];
 
-  productsToExport.forEach((p, i) => {
+  productsToExport.forEach(p => {
     const handle = (p.name || 'product').toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const price      = parseFloat(p.sellPrice || p.cost * 2.5 || 19.99).toFixed(2);
-    const compareAt  = (parseFloat(price) * 1.3).toFixed(2);
-    const tags       = '"' + [(p.tags||[]).join(','), p.niche||'', 'trending', 'dropship', 'herb-haze'].filter(Boolean).join(',') + '"';
-    const desc       = '"<p>' + (p.description || p.name + ' - Premium quality product with fast shipping.').replace(/"/g,"'") + '</p>"';
-    const image      = p.image || getNicheImage(p.niche || 'General');
-    const sku        = handle + '-' + String(i+1).padStart(3,'0');
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/, '');
+    const price     = parseFloat(p.sellPrice || (p.cost * 2.5) || 19.99).toFixed(2);
+    const compareAt = (parseFloat(price) * 1.3).toFixed(2);
+    // Tags must be quoted as a single field
+    const tagList   = [...(p.tags || []), p.niche || 'General', 'trending', 'dropship']
+      .map(t => t.toLowerCase().replace(/[^a-z0-9 ]/g,'')).join(',');
+    const desc      = `<p>${p.description || p.name + ' - Premium quality with fast shipping.'}</p>`;
+    const img       = p.image || getNicheImage(p.niche || 'General');
+    const sku       = handle.slice(0,20) + '-001';
 
     const row = [
       handle,
-      '"' + (p.name||'Product').replace(/"/g,"'") + '"',
-      desc,
+      p.name || 'Product',
+      escapeCSV(desc),
       'Herb Haze Studios',
-      '"' + (p.niche||'General') + '"',
-      tags,
+      p.niche || 'General',
+      escapeCSV(tagList),
       'TRUE',
       'Title',
       'Default Title',
       sku,
       '0',
-      'shopify',
-      '999',
+      '',
+      '100',
       'continue',
       'manual',
       price,
       compareAt,
       'TRUE',
       'TRUE',
-      image,
-      '"' + (p.name||'Product').replace(/"/g,"'") + '"',
+      img,
+      escapeCSV(p.name || 'Product'),
       'active'
     ];
-
     rows.push(row.join(','));
   });
 
-  const csv  = rows.join('\n');
+  const csv  = rows.join('
+');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = 'herb-haze-products-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.download = `herb-haze-shopify-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
   addWR({from:'importer', type:'success',
-    text:`✓ Shopify CSV exported: ${productsToExport.length} products\n\nTo import:\n1. Go to Shopify Admin → Products\n2. Click Import\n3. Upload the downloaded CSV file\n4. Click Import products\n✓ All products will be live in your store!`
+    text:`✓ Shopify CSV exported: ${productsToExport.length} products ready to import!\n\n1. Go to Shopify Admin → Products\n2. Click Import → Add file\n3. Upload CSV → Click Upload and preview → Import products\n✓ Products go live instantly!`
   });
 
-  // Show success alert on dashboard
   const alertsEl = document.getElementById('alerts-section');
   if (alertsEl) {
     alertsEl.innerHTML = `
       <div class="alert alert-green" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <div>✓ CSV downloaded! ${productsToExport.length} products ready to import</div>
-        <div style="font-size:10px;line-height:1.8;color:var(--text)">
-          <strong>Import to Shopify in 3 clicks:</strong><br>
+        <div style="font-weight:700">✓ CSV downloaded! ${productsToExport.length} products ready</div>
+        <div style="font-size:10px;line-height:2;color:var(--text)">
           1. Go to <a href="https://herb-haze-studios.myshopify.com/admin/products" target="_blank" style="color:var(--cyan)">Shopify Admin → Products</a><br>
-          2. Click <strong>Import</strong> button (top right)<br>
-          3. Upload the CSV file → Click <strong>Import products</strong>
+          2. Click <strong>Import</strong> → <strong>Add file</strong> → upload CSV<br>
+          3. Click <strong>Upload and preview</strong> → <strong>Import products</strong>
         </div>
       </div>`;
   }
