@@ -1,7 +1,72 @@
 // ============================================================
-// Herb Haze AI — Supplier & Shopify Integration
-// Handles: CJDropshipping, AliExpress, Spocket, Shopify
+// Herb Haze AI — Shopify Integration (2025 OAuth method)
+// Uses Client Credentials to get access token automatically
 // ============================================================
+
+let cachedToken = null;
+let tokenExpiry = 0;
+
+async function getShopifyToken() {
+  // Return cached token if still valid
+  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
+
+  const store     = process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com';
+  const clientId  = process.env.SHOPIFY_CLIENT_ID;
+  const clientSec = process.env.SHOPIFY_CLIENT_SECRET;
+
+  // If we have a direct access token, use it
+  if (process.env.SHOPIFY_ACCESS_TOKEN && process.env.SHOPIFY_ACCESS_TOKEN.startsWith('shpat_')) {
+    return process.env.SHOPIFY_ACCESS_TOKEN;
+  }
+
+  // Try client credentials grant (new 2025 Shopify method)
+  if (clientId && clientSec) {
+    try {
+      const res = await fetch(`https://${store}/admin/oauth/access_token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id:     clientId,
+          client_secret: clientSec,
+          grant_type:    'client_credentials',
+        }),
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        cachedToken = data.access_token;
+        tokenExpiry = Date.now() + (50 * 60 * 1000); // cache 50 mins
+        return cachedToken;
+      }
+    } catch (e) {
+      console.error('[Shopify token]', e.message);
+    }
+  }
+
+  // Fallback to whatever token we have
+  return process.env.SHOPIFY_ACCESS_TOKEN || process.env.APIEASE_KEY || null;
+}
+
+async function shopifyRequest(path, method = 'GET', body = null) {
+  const store = process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com';
+  const token = await getShopifyToken();
+
+  if (!token) throw new Error('No Shopify token available. Add SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET to Vercel.');
+
+  const opts = {
+    method,
+    headers: {
+      'Content-Type':           'application/json',
+      'X-Shopify-Access-Token': token,
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+
+  const res  = await fetch(`https://${store}/admin/api/2024-01${path}`, opts);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.errors ? JSON.stringify(data.errors) : `HTTP ${res.status}`);
+  return data;
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,231 +75,160 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { action, product, orderId, supplier } = req.body;
+  const { action, product, orderId } = req.body;
 
-  // ── Shopify: Create product listing ──────────────────────
+  // ── Create product in Shopify ────────────────────────────
   if (action === 'shopify_create_product') {
     try {
-      const shopifyUrl = process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com';
-      const shopifyToken = process.env.SHOPIFY_ACCESS_TOKEN;
+      const p = product;
+      const sellPrice = parseFloat(p.sellPrice || p.cost * 2.5 || 19.99).toFixed(2);
+      const compareAt  = (parseFloat(sellPrice) * 1.3).toFixed(2);
 
-      if (!shopifyToken) {
-        return res.status(200).json({
-          success: false,
-          error: 'Add SHOPIFY_ACCESS_TOKEN to Vercel environment variables',
-          instructions: [
-            '1. Go to your Shopify admin → Settings → Apps and sales channels',
-            '2. Click "Develop apps" → Create an app',
-            '3. Configure Admin API scopes: write_products, write_orders, read_orders',
-            '4. Install app → copy Admin API access token',
-            '5. Add to Vercel: SHOPIFY_ACCESS_TOKEN=shpat_...',
-          ]
-        });
-      }
-
-      const shopifyProduct = {
+      const data = await shopifyRequest('/products.json', 'POST', {
         product: {
-          title: product.name,
-          body_html: `<p>${product.description}</p>`,
-          vendor: 'Herb Haze Studios',
-          product_type: product.niche || 'General',
-          tags: (product.tags || []).join(', '),
+          title:        p.name,
+          body_html:    `<p>${p.description || 'Quality product with fast shipping.'}</p>
+                         <ul>${(p.tags||[]).slice(0,4).map(t => `<li>${t}</li>`).join('')}</ul>`,
+          vendor:       'Herb Haze Studios',
+          product_type: p.niche || 'General',
+          tags:         (p.tags || []).join(', ') + ', dropship, trending',
+          status:       'active',
           variants: [{
-            price: product.sellPrice?.toString(),
-            compare_at_price: (product.sellPrice * 1.3)?.toFixed(2),
+            price:              sellPrice,
+            compare_at_price:   compareAt,
             inventory_management: 'shopify',
             inventory_quantity: 999,
+            fulfillment_service: 'manual',
           }],
-          status: 'active',
-        }
-      };
-
-      const res2 = await fetch(`https://${shopifyUrl}/admin/api/2024-01/products.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': shopifyToken,
         },
-        body: JSON.stringify(shopifyProduct),
       });
 
-      const data = await res2.json();
-      if (data.product) {
-        return res.status(200).json({
-          success: true,
-          productId: data.product.id,
-          productUrl: `https://${shopifyUrl}/products/${data.product.handle}`,
-          adminUrl: `https://${shopifyUrl}/admin/products/${data.product.id}`,
-        });
-      }
-      return res.status(200).json({ success: false, error: data.errors, raw: data });
+      return res.status(200).json({
+        success:    true,
+        productId:  data.product.id,
+        productUrl: `https://${process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com'}/products/${data.product.handle}`,
+        adminUrl:   `https://${process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com'}/admin/products/${data.product.id}`,
+        title:      data.product.title,
+      });
 
     } catch (err) {
-      return res.status(500).json({ error: err.message });
+      console.error('[Create product]', err.message);
+      return res.status(200).json({
+        success: false,
+        error:   err.message,
+        hint:    'Make sure SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET are set in Vercel env vars',
+      });
     }
   }
 
-  // ── CJDropshipping: Search products ──────────────────────
+  // ── Get orders from Shopify ──────────────────────────────
+  if (action === 'shopify_get_orders') {
+    try {
+      const data = await shopifyRequest('/orders.json?status=any&limit=20');
+      return res.status(200).json({
+        success: true,
+        orders:  (data.orders || []).map(o => ({
+          id:         o.id,
+          name:       o.name,
+          total:      o.total_price,
+          customer:   o.shipping_address?.name || o.email,
+          status:     o.fulfillment_status || 'unfulfilled',
+          createdAt:  o.created_at,
+          lineItems:  o.line_items?.map(li => ({
+            name:     li.name,
+            quantity: li.quantity,
+            price:    li.price,
+          })),
+        })),
+      });
+    } catch (err) {
+      console.error('[Get orders]', err.message);
+      return res.status(200).json({ success: false, error: err.message, orders: [] });
+    }
+  }
+
+  // ── Get products from Shopify ────────────────────────────
+  if (action === 'shopify_get_products') {
+    try {
+      const data = await shopifyRequest('/products.json?limit=20&status=active');
+      return res.status(200).json({
+        success:  true,
+        products: (data.products || []).map(p => ({
+          id:     p.id,
+          title:  p.title,
+          status: p.status,
+          price:  p.variants?.[0]?.price,
+          image:  p.image?.src,
+          handle: p.handle,
+        })),
+      });
+    } catch (err) {
+      return res.status(200).json({ success: false, error: err.message, products: [] });
+    }
+  }
+
+  // ── CJDropshipping: Search products ─────────────────────
   if (action === 'cj_search') {
     try {
-      const { keyword, page = 1 } = req.body;
+      const { keyword } = req.body;
 
-      // Get CJ access token first
       const tokenRes = await fetch('https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: process.env.CJ_EMAIL,
-          password: process.env.CJ_PASSWORD,
-        }),
+        body:    JSON.stringify({ email: process.env.CJ_EMAIL, password: process.env.CJ_PASSWORD }),
       });
       const tokenData = await tokenRes.json();
+      const cjToken   = tokenData.data?.accessToken;
 
-      if (!tokenData.data?.accessToken) {
-        return res.status(200).json({
-          success: false,
-          error: 'CJ login failed. Add CJ_EMAIL and CJ_PASSWORD to Vercel env vars.',
-          fallback: true,
-        });
-      }
+      if (!cjToken) return res.status(200).json({ success: false, error: 'CJ auth failed', products: [] });
 
-      const token = tokenData.data.accessToken;
-      const searchRes = await fetch(`https://developers.cjdropshipping.com/api2.0/v1/product/list?keyword=${encodeURIComponent(keyword)}&pageNum=${page}&pageSize=20`, {
-        headers: { 'CJ-Access-Token': token },
-      });
+      const searchRes = await fetch(
+        `https://developers.cjdropshipping.com/api2.0/v1/product/list?keyword=${encodeURIComponent(keyword)}&pageNum=1&pageSize=10`,
+        { headers: { 'CJ-Access-Token': cjToken } }
+      );
       const searchData = await searchRes.json();
 
       return res.status(200).json({
-        success: true,
+        success:  true,
         products: (searchData.data?.list || []).map(p => ({
-          id: p.pid,
-          name: p.productName,
-          cost: parseFloat(p.sellPrice),
-          image: p.productImage,
+          id:       p.pid,
+          name:     p.productName,
+          cost:     parseFloat(p.sellPrice),
+          image:    p.productImage,
           category: p.categoryName,
           supplier: 'CJDropshipping',
         })),
       });
-
-    } catch (err) {
-      return res.status(200).json({ success: false, error: err.message, fallback: true });
-    }
-  }
-
-  // ── CJDropshipping: Create order ─────────────────────────
-  if (action === 'cj_create_order') {
-    try {
-      const { shopifyOrder, cjProductId } = req.body;
-
-      // Get token
-      const tokenRes = await fetch('https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: process.env.CJ_EMAIL, password: process.env.CJ_PASSWORD }),
-      });
-      const tokenData = await tokenRes.json();
-      const token = tokenData.data?.accessToken;
-      if (!token) return res.status(200).json({ success: false, error: 'CJ auth failed' });
-
-      // Create order
-      const orderRes = await fetch('https://developers.cjdropshipping.com/api2.0/v1/shopping/order/createOrder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CJ-Access-Token': token },
-        body: JSON.stringify({
-          orderNumber: shopifyOrder.id?.toString(),
-          shippingZip: shopifyOrder.shipping_address?.zip,
-          shippingCountryCode: shopifyOrder.shipping_address?.country_code,
-          shippingCountry: shopifyOrder.shipping_address?.country,
-          shippingProvince: shopifyOrder.shipping_address?.province,
-          shippingCity: shopifyOrder.shipping_address?.city,
-          shippingAddress: shopifyOrder.shipping_address?.address1,
-          shippingCustomerName: shopifyOrder.shipping_address?.name,
-          shippingPhone: shopifyOrder.shipping_address?.phone || '0000000000',
-          products: [{ vid: cjProductId, quantity: 1 }],
-          logisticName: 'CJPacket',
-          remark: `Herb Haze Studios Order #${shopifyOrder.id}`,
-        }),
-      });
-
-      const orderData = await orderRes.json();
-      return res.status(200).json({
-        success: orderData.result,
-        cjOrderId: orderData.data?.orderId,
-        message: orderData.message,
-      });
-
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // ── AliExpress: Search products (via RapidAPI) ────────────
+  // ── AliExpress: Search products ──────────────────────────
   if (action === 'ali_search') {
     try {
       const { keyword } = req.body;
       const aliKey = process.env.ALIEXPRESS_API_KEY;
+      if (!aliKey) return res.status(200).json({ success: false, error: 'No AliExpress API key', products: [] });
 
-      if (!aliKey) {
-        return res.status(200).json({
-          success: false,
-          error: 'Add ALIEXPRESS_API_KEY to Vercel env vars',
-          instructions: ['1. Go to rapidapi.com', '2. Search "AliExpress Data"', '3. Subscribe to free tier', '4. Copy API key', '5. Add to Vercel as ALIEXPRESS_API_KEY'],
-          fallback: true,
-        });
-      }
-
-      const searchRes = await fetch(`https://aliexpress-datahub.p.rapidapi.com/item_search_2?q=${encodeURIComponent(keyword)}&page=1`, {
-        headers: {
-          'X-RapidAPI-Key': aliKey,
-          'X-RapidAPI-Host': 'aliexpress-datahub.p.rapidapi.com',
-        },
-      });
+      const searchRes = await fetch(
+        `https://aliexpress-datahub.p.rapidapi.com/item_search_2?q=${encodeURIComponent(keyword)}&page=1`,
+        { headers: { 'X-RapidAPI-Key': aliKey, 'X-RapidAPI-Host': 'aliexpress-datahub.p.rapidapi.com' } }
+      );
       const data = await searchRes.json();
 
       return res.status(200).json({
-        success: true,
+        success:  true,
         products: (data.result?.resultList || []).slice(0,10).map(p => ({
-          id: p.item?.itemId,
-          name: p.item?.title,
-          cost: parseFloat(p.item?.sku?.def?.promotionPrice || p.item?.sku?.def?.price || 0),
-          image: p.item?.image,
+          id:       p.item?.itemId,
+          name:     p.item?.title,
+          cost:     parseFloat(p.item?.sku?.def?.promotionPrice || 0),
+          image:    p.item?.image,
           supplier: 'AliExpress',
-          orders: p.item?.trade?.realTradedCount || 0,
-          rating: p.item?.evaluation?.starRating || 0,
+          orders:   p.item?.trade?.realTradedCount || 0,
+          rating:   p.item?.evaluation?.starRating || 0,
         })),
       });
-
-    } catch (err) {
-      return res.status(500).json({ error: err.message });
-    }
-  }
-
-  // ── Shopify: Get orders ───────────────────────────────────
-  if (action === 'shopify_get_orders') {
-    try {
-      const shopifyUrl = process.env.SHOPIFY_STORE_URL || 'herb-haze-studios.myshopify.com';
-      const shopifyToken = process.env.SHOPIFY_ACCESS_TOKEN;
-
-      if (!shopifyToken) return res.status(200).json({ success: false, error: 'No Shopify token', orders: [] });
-
-      const ordersRes = await fetch(`https://${shopifyUrl}/admin/api/2024-01/orders.json?status=open&limit=20`, {
-        headers: { 'X-Shopify-Access-Token': shopifyToken },
-      });
-      const data = await ordersRes.json();
-
-      return res.status(200).json({
-        success: true,
-        orders: (data.orders || []).map(o => ({
-          id: o.id,
-          name: o.name,
-          total: o.total_price,
-          customer: o.shipping_address?.name,
-          status: o.fulfillment_status || 'unfulfilled',
-          createdAt: o.created_at,
-          lineItems: o.line_items?.map(li => ({ name: li.name, quantity: li.quantity, price: li.price })),
-        })),
-      });
-
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
