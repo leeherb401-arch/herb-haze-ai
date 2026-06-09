@@ -25,24 +25,34 @@ async function getShopifyToken() {
     return directToken;
   }
 
-  // Try client credentials grant (new 2025 Shopify method)
+  // Try client credentials grant (correct 2026 format - urlencoded not JSON)
   if (clientId && clientSec) {
     try {
+      // Must use x-www-form-urlencoded NOT json
+      const body = new URLSearchParams({
+        grant_type:    'client_credentials',
+        client_id:     clientId,
+        client_secret: clientSec,
+      }).toString();
+
       const res = await fetch(`https://${store}/admin/oauth/access_token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          client_id:     clientId,
-          client_secret: clientSec,
-          grant_type:    'client_credentials',
-        }),
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
       });
-      const data = await res.json();
+
+      const text = await res.text();
+      console.log('[Shopify token response]', res.status, text.slice(0, 200));
+
+      let data;
+      try { data = JSON.parse(text); } catch { data = {}; }
+
       if (data.access_token) {
         cachedToken = data.access_token;
-        tokenExpiry = Date.now() + (50 * 60 * 1000); // cache 50 mins
+        tokenExpiry = Date.now() + (50 * 60 * 1000);
         return cachedToken;
       }
+      console.error('[Shopify token] No access_token in response:', data);
     } catch (e) {
       console.error('[Shopify token]', e.message);
     }
