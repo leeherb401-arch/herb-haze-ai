@@ -12,14 +12,14 @@
   --green:#7ab87a;--blue:#9fb8d8;--pink:#d4607a;--orange:#d4822a;
   --text:#f0e6d3;--muted:#6b4a52;--dim:#0d080a;
 }
-body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;position:relative;}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;min-height:100vh;position:relative;isolation:isolate;}
 
 /* Inuyasha subtle background */
 body::before {
   content:'';
   position:fixed;
   inset:0;
-  z-index:0;
+  z-index:-2;
   pointer-events:none;
   background:
     /* Sacred jewel glow - top right */
@@ -37,7 +37,7 @@ body::after {
   content:'';
   position:fixed;
   inset:0;
-  z-index:0;
+  z-index:-2;
   pointer-events:none;
   background-image:
     radial-gradient(circle 1px at 15% 20%, rgba(232,160,69,.3) 0%, transparent 100%),
@@ -57,7 +57,7 @@ body::after {
 }
 
 /* Subtle bamboo/forest grid lines */
-nav, .page, .card, .stat, .product-card, .agent-card, .wr-msg {
+nav, .page, .card, .stat, .product-card, .agent-card, .wr-msg, button, input, select, a {
   position:relative;
   z-index:1;
 }
@@ -100,8 +100,8 @@ nav{background:rgba(6,5,9,0.88);backdrop-filter:blur(8px);border-bottom:1px soli
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;margin-left:auto;}
 
 /* PAGES */
-.page{display:none;padding:24px;max-width:1200px;margin:0 auto;animation:fadeUp 0.4s ease;}
-.page.active{display:block;}
+.page{display:none;padding:24px;max-width:1200px;margin:0 auto;animation:fadeUp 0.4s ease;position:relative;z-index:10;}
+.page.active{display:block;position:relative;z-index:10;}
 
 /* CARDS */
 .card{background:rgba(22,13,16,0.82);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
@@ -218,7 +218,7 @@ nav{background:rgba(6,5,9,0.88);backdrop-filter:blur(8px);border-bottom:1px soli
 
 
 <!-- ── LIVE WALLPAPER BACKGROUND ── -->
-<div style="position:fixed;inset:0;z-index:0;pointer-events:none">
+<div style="position:fixed;inset:0;z-index:-1;pointer-events:none">
 
   <!-- Background image -->
   <div style="position:absolute;inset:0;background:url('inuyasha-bg.jpg') center center/cover no-repeat;filter:brightness(0.35) saturate(1.2)"></div>
