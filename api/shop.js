@@ -14,9 +14,15 @@ async function getShopifyToken() {
   const clientId  = process.env.SHOPIFY_CLIENT_ID;
   const clientSec = process.env.SHOPIFY_CLIENT_SECRET;
 
-  // If we have a direct access token, use it
-  if (process.env.SHOPIFY_ACCESS_TOKEN && process.env.SHOPIFY_ACCESS_TOKEN.startsWith('shpat_')) {
-    return process.env.SHOPIFY_ACCESS_TOKEN;
+  // Accept any Shopify token format - shpat_, atkn_, shpca_ all work
+  const directToken = process.env.SHOPIFY_ACCESS_TOKEN;
+  if (directToken && (
+    directToken.startsWith('shpat_') ||
+    directToken.startsWith('atkn_')  ||
+    directToken.startsWith('shpca_') ||
+    directToken.startsWith('shpua_')
+  )) {
+    return directToken;
   }
 
   // Try client credentials grant (new 2025 Shopify method)
