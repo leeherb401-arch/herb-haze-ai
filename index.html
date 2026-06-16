@@ -1476,8 +1476,7 @@ function exportToShopifyCSV(productsToExport) {
 
   const escapeCSV = (val) => {
     const str = String(val || '').replace(/"/g, '""');
-    return (str.includes(',') || str.includes('"') || str.includes('
-')) ? `"${str}"` : str;
+    return (str.includes(',') || str.includes('"') || str.includes('\n')) ? `"${str}"` : str;
   };
 
   const rows = [headers.join(',')];
@@ -1521,8 +1520,7 @@ function exportToShopifyCSV(productsToExport) {
     rows.push(row.join(','));
   });
 
-  const csv  = rows.join('
-');
+  const csv  = rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
