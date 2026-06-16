@@ -468,6 +468,18 @@ console.log("SCRIPT END");
 
   <div class="agent-grid" id="agent-grid"></div>
 
+  <!-- Autonomous Status -->
+  <div class="card" style="border:1px solid rgba(0,240,200,.3); background:rgba(0,240,200,.03)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="live-dot"></div>
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:700;color:var(--cyan)">AUTONOMOUS BACKGROUND MODE: ACTIVE</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">All 6 agents are running master cycles every 24hrs at 8AM UTC.</div>
+      </div>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:9px" onclick="runAutonomousCycle(this)">⚡ TRIGGER MANUAL CYCLE</button>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-label" id="chat-label">SELECT AN AGENT TO CHAT</div>
     <div class="chat-box" id="chat-box">
@@ -1125,6 +1137,31 @@ function parseAndSuggestImport(text) {
   const alertsEl = document.getElementById('alerts-section');
   if (alertsEl) {
     alertsEl.innerHTML = `<div class="alert alert-amber">💡 RESEARCHER found products — go to Research tab and click "Auto-Import Best Picks" to add them to your store</div>`;
+  }
+}
+
+async function runAutonomousCycle(btn) {
+  if (btn.disabled) return;
+  const oldText = btn.textContent;
+  btn.textContent = '⟳ EXECUTING...';
+  btn.disabled = true;
+  addWR({from:'system', type:'broadcast', text:'Manual trigger: Starting master autonomous agent cycle...'});
+
+  try {
+    const res = await fetch('/api/autonomous-agent', { method: 'POST' });
+    const data = await res.json();
+    if (data.success && data.logs) {
+      data.logs.forEach(l => addWR(l));
+      alert('Autonomous Cycle Complete! Check the War Room for details.');
+    } else {
+      throw new Error(data.error || 'Failed to complete cycle');
+    }
+  } catch (e) {
+    addWR({from:'system', type:'alert', text: 'Error in manual cycle: ' + e.message});
+    alert('Error: ' + e.message);
+  } finally {
+    btn.textContent = oldText;
+    btn.disabled = false;
   }
 }
 
