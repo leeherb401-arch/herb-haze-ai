@@ -1,6 +1,9 @@
 {
   "name": "herb-haze-ai",
-  "version": "1.0.1",
+  "version": "1.0.2",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "private": true,
   "dependencies": {
     "stripe": "^14.0.0",
